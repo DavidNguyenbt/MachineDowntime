@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient1"
+    android:id="@+id/layoutscanload"
+    android:minWidth="25px"
+    android:minHeight="25px">
+    <TextView
+        android:text="Name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtname"/>
+    <Button
+        android:text="DT96"
+        android:textSize="10dp"
+        android:layout_width="90.0dp"
+        android:layout_height="32.3dp"
+        android:layout_below="@id/txtname"
+        android:id="@+id/btscanin" />
+    <Button
+        android:text="DT97"
+        android:textSize="10dp"
+        android:layout_width="90.0dp"
+        android:layout_height="32.3dp"
+        android:layout_below="@id/txtname"
+        android:layout_toRightOf="@id/btscanin"
+        android:id="@+id/btscanout" />
+    <Button
+        android:text="DT98"
+        android:textSize="10dp"
+        android:layout_width="80.0dp"
+        android:layout_height="32.3dp"
+        android:layout_below="@id/txtname"
+        android:layout_toRightOf="@id/btscanout"
+        android:id="@+id/bttimpo" />
+    <Button
+        android:text="SPMK"
+        android:textSize="10dp"
+        android:layout_width="90.0dp"
+        android:layout_height="32.3dp"
+        android:layout_below="@id/txtname"
+        android:layout_toRightOf="@id/bttimpo"
+        android:id="@+id/btspmk" />
+    <Button
+        android:text="DT101"
+        android:textSize="10dp"
+        android:layout_width="90.0dp"
+        android:layout_height="32.3dp"
+        android:layout_below="@id/btscanin"
+        android:id="@+id/btchangepo" />
+    <Button
+        android:text="DT102"
+        android:textSize="10dp"
+        android:layout_width="90.0dp"
+        android:layout_height="32.3dp"
+        android:layout_below="@id/btscanin"
+        android:layout_toRightOf="@id/btchangepo"
+        android:id="@+id/btcombinepo" />
+    <HorizontalScrollView
+        android:minWidth="25px"
+        android:minHeight="25px"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="20dp"
+        android:layout_below="@id/btchangepo"
+        android:id="@+id/horizontalScrollView1" >
+        <ListView
+            android:minWidth="25px"
+            android:minHeight="25px"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/listView1" />
+    </HorizontalScrollView>
+
+</RelativeLayout>

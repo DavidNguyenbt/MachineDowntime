@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<HorizontalScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <RelativeLayout
+        android:background="@drawable/gradient1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/layoutlocation">
+        <TextView
+            android:text="15/02/2020 10:01:22"
+            android:textSize="30px"
+            android:textColor="#C1CDCD"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="25px"
+            android:minHeight="25px"
+            android:layout_marginLeft="5px"
+            android:id="@+id/txtdate" />
+        <TextView
+            android:text="Mechanic : "
+            android:textSize="30px"
+            android:textColor="#000000"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="25px"
+            android:minHeight="25px"
+            android:layout_below="@id/txtdate"
+            android:layout_marginLeft="5px"
+            android:id="@+id/txtten1" />
+        <TextView
+            android:text="Nguyen Van A"
+            android:textSize="30px"
+            android:textColor="#FF3030"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="25px"
+            android:minHeight="25px"
+            android:layout_marginLeft="20px"
+            android:layout_toRightOf="@id/txtten1"
+            android:layout_below="@id/txtdate"
+            android:id="@+id/txtten2" />
+        <TextView
+            android:text="Levels : "
+            android:textSize="30px"
+            android:textColor="#000000"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="25px"
+            android:minHeight="25px"
+            android:layout_below="@id/txtdate"
+            android:layout_toRightOf="@id/txtten2"
+            android:layout_marginLeft="25px"
+            android:id="@+id/txtlevel1" />
+        <TextView
+            android:text="0"
+            android:textSize="30px"
+            android:textColor="#FF3030"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="25px"
+            android:minHeight="25px"
+            android:layout_marginLeft="5px"
+            android:layout_toRightOf="@id/txtlevel1"
+            android:layout_below="@id/txtdate"
+            android:id="@+id/txtlevel2" />
+        <TextView
+            android:text="Area : "
+            android:textSize="30px"
+            android:textColor="#000000"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="25px"
+            android:minHeight="25px"
+            android:layout_marginTop="25px"
+            android:layout_marginLeft="5px"
+            android:layout_below="@id/txtten1"
+            android:id="@+id/txtarea" />
+        <EditText
+            android:text="Fac1/Sewing Line/Line 01"
+            android:textSize="30px"
+            android:textColor="#FF3030"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:focusable="false"
+            android:layout_below="@id/txtten1"
+            android:layout_toRightOf="@id/txtarea"
+            android:id="@+id/edarea"/>
+        <Button
+            android:text="CHANGE"
+            android:textSize="30px"
+            android:layout_below="@id/txtten1"
+            android:layout_toRightOf="@id/edarea"
+            android:id="@+id/btchange"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"/>
+        <Button
+            android:text="SCAN"
+            android:textSize="30px"
+            android:layout_below="@id/edarea"
+            android:id="@+id/btscan"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"/>
+        <Button
+            android:text="MC SUPPERMARKET"
+            android:textSize="30px"
+            android:layout_below="@id/edarea"
+            android:id="@+id/btsieuthimay"
+            android:layout_toRightOf="@id/btscan"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"/>
+        <Button
+            android:text="CHANGE PASSWORD"
+            android:textSize="30px"
+            android:layout_below="@id/edarea"
+            android:id="@+id/btdoipass"
+            android:layout_toRightOf="@id/btsieuthimay"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"/>
+        <TextView
+            android:text="Mchine Qty : 0"
+            android:textSize="20px"
+            android:textColor="#000000"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="25px"
+            android:minHeight="25px"
+            android:layout_marginTop="45px"
+            android:layout_marginLeft="5px"
+            android:layout_below="@id/btscan"
+            android:id="@+id/txtqty" />
+        <ListView
+            android:minWidth="25px"
+            android:minHeight="25px"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_below="@id/txtqty"
+            android:id="@+id/lsmachine" />
+        <RadioGroup
+            android:minWidth="25px"
+            android:minHeight="25px"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_below="@id/btscan"
+            android:layout_toRightOf="@id/txtqty"
+            android:id="@+id/radioGroup1">
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="All"
+                android:id="@+id/radioButton1" />
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="F1"
+                android:id="@+id/radioButton2" />
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="F2"
+                android:id="@+id/radioButton3" />
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="F3"
+                android:id="@+id/radioButton4" />
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="F4"
+                android:id="@+id/radioButton5" />
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="F5"
+                android:id="@+id/radioButton6" />
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="RnD"
+                android:id="@+id/radioButton7" />
+        </RadioGroup>
+    </RelativeLayout>
+</HorizontalScrollView>

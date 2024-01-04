@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+	android:background="@drawable/gradient1"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+	android:id="@+id/layoutlogin">
+	<CheckBox
+		android:text="EN"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:minWidth="25px"
+		android:minHeight="25px"
+		android:id="@+id/chklg" />
+	<TextView
+		android:text="DT01"
+		android:textSize="40dp"
+		android:textColor="#FFFFFF"
+		android:textStyle="bold"
+		android:layout_marginLeft="20dp"
+		android:textAlignment="center"
+		android:layout_width="298.3dp"
+		android:layout_height="wrap_content"
+		android:layout_below="@id/chklg"
+		android:id="@+id/textView1" />
+	<TextView
+		android:text="DT02"
+		android:textSize="20dp"
+		android:textStyle="bold"
+		android:layout_marginLeft="20dp"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="20dp"
+		android:layout_below="@id/textView1"
+		android:id="@+id/textView2" />
+	<EditText
+		android:layout_width="200.0dp"
+		android:layout_height="wrap_content"
+		android:textAlignment="center"
+		android:textColor="#FF3030"
+		android:textSize="20dp"
+		android:layout_marginLeft="120dp"
+		android:inputType="textCapCharacters"
+		android:layout_below="@id/textView1"
+		android:id="@+id/edten" />
+	<TextView
+		android:text="DT03"
+		android:textSize="20dp"
+		android:textStyle="bold"
+		android:layout_marginLeft="20dp"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="20dp"
+		android:layout_below="@id/edten"
+		android:id="@+id/textView3" />
+	<EditText
+		android:layout_width="200.0dp"
+		android:layout_height="wrap_content"
+		android:layout_marginLeft="120dp"
+		android:layout_below="@id/edten"
+		android:textSize="20dp"
+		android:textAlignment="center"
+		android:password="true"
+		android:id="@+id/edmk" />
+	<TextView
+		android:text="DT04"
+		android:textSize="20dp"
+		android:textStyle="bold"
+		android:layout_marginLeft="20dp"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="20dp"
+		android:layout_below="@id/edmk"
+		android:id="@+id/textView4" />
+	<EditText
+		android:layout_width="200.0dp"
+		android:textSize="20dp"
+		android:layout_height="wrap_content"
+		android:layout_marginLeft="120dp"
+		android:textAlignment="center"
+		android:layout_below="@id/edmk"
+		android:id="@+id/edfac" />
+	<TextView
+		android:text="DT05"
+		android:textSize="20dp"
+		android:textStyle="bold"
+		android:layout_marginLeft="20dp"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="20dp"
+		android:layout_below="@id/edfac"
+		android:id="@+id/textView5" />
+	<EditText
+		android:layout_width="200.0dp"
+		android:textSize="20dp"
+		android:layout_height="wrap_content"
+		android:layout_marginLeft="120dp"
+		android:textAlignment="center"
+		android:layout_below="@id/edfac"
+		android:id="@+id/edline" />
+	<Button
+		android:text="DT06"
+		android:layout_width="140.0dp"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="20dp"
+		android:layout_marginLeft="20dp"
+		android:layout_below="@id/textView5"
+		android:id="@+id/btexit" />
+	<Button
+		android:text="DT07"
+		android:layout_width="140.0dp"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="20dp"
+		android:layout_marginLeft="20dp"
+		android:layout_below="@id/textView5"
+		android:layout_toRightOf="@id/btexit"
+		android:id="@+id/btlogin" />
+	<TextView
+		android:text="SERVER CONFIGURATION"
+		android:textStyle="italic"
+		android:gravity="center"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="30dp"
+		android:layout_below="@id/btexit"
+		android:id="@+id/textView6" />
+	<TextView
+		android:text="Version : MD_06"
+		android:textSize="7dp"
+		android:gravity="center"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_below="@id/textView6"
+		android:id="@+id/txtversion"
+		android:layout_marginTop="120dp" />
+</RelativeLayout>
