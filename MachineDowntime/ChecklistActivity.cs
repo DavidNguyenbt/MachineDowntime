@@ -218,8 +218,12 @@ namespace MachineDowntime
                     }
 
                     foreach (DataRow row in Data.Rows)
+                    {
                         qr += "insert into MachineCheckListResult values (" + row["ID"] + ",'" + txtfacline.Text + "','" + txtmcno.Text + "','" + Temp.user + "'," + transdate + ",'" + row["Result"] + "','" + Temp.user
                                 + "',getdate(),'" + q + "','" + row["CheckedBy"] + "'," + (row["CheckedDate"].ToString() == "" ? "null" : "'" + DateTime.Parse(row["CheckedDate"].ToString()).ToString("yyyyMMdd") + "'") + ",N'" + row["Remark"] + "') \n";
+
+                        if()
+                    }    
 
                     kn.Ghi(qr);
 
@@ -263,23 +267,9 @@ namespace MachineDowntime
             };
             btchecked.Click += delegate
             {
-                if (Data.Rows.Count > 0)
-                {
-                    foreach (DataRow row in Data.Rows)
-                    {
-                        if (row["Result"].ToString() != "")
-                        {
-                            row["CheckedBy"] = Temp.user;
-                            row["CheckedDate"] = DateTime.Now;
-                        }
-                    }
+                kn.Doc("exec TPMUpdateCheckedBy '" + txtmcno.Text + "',N'" + txtmctype.Text + "','" + q + "','" + Temp.user + "'");
 
-                    Data.AcceptChanges();
-
-                    LoadList();
-
-                    btsave.Visibility = ViewStates.Visible;
-                }
+                LoadData();
             };
             btconfig.Click += delegate
             {
@@ -385,7 +375,7 @@ namespace MachineDowntime
         }
         private void LoadList()
         {
-            lschecklist.Adapter = new A1ATeam.ListViewAdapterWithNoLayout(Data, new List<int> { LayoutRequest.Widht(w), LayoutRequest.Widht(w * 8), LayoutRequest.Widht(w * 2), LayoutRequest.Widht(w * 3), LayoutRequest.Widht(w * 3), LayoutRequest.Widht(w * 8) }, true)
+            lschecklist.Adapter = new A1ATeam.ListViewAdapterWithNoLayout(Data, new List<int> { LayoutRequest.Widht(w), LayoutRequest.Widht(w * 8), LayoutRequest.Widht(w * 2), LayoutRequest.Widht(w * 3), LayoutRequest.Widht(w * 3), LayoutRequest.Widht(w * 2), LayoutRequest.Widht(w * 3), LayoutRequest.Widht(w * 3), LayoutRequest.Widht(w * 8) }, true)
             {
                 TextSize = LayoutRequest.TextSize(t),
                 TextHilight = new List<A1ATeam.TextHilight> { new A1ATeam.TextHilight { ColumnIndex = 2, Condition = "Good", Color = Color.Green }, new A1ATeam.TextHilight { ColumnIndex = 2, Condition = "Bad", Color = Color.Red } }

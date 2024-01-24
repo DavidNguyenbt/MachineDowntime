@@ -32,7 +32,7 @@ namespace MachineDowntime
         //public static string chuoi = "Data Source=192.168.54.8;Initial Catalog=Maintenance;Integrated Security=False;User ID=sa;Password=Admin@168*;Connect Timeout=30;Encrypt=False;";
         //public static string com = "Data Source=192.168.54.8;Initial Catalog=DtradeProduction;Integrated Security=False;User ID=sa;Password=Admin@168*;Connect Timeout=30;Encrypt=False;";
         //public static string chuoi = "Data Source=108.181.157.253,18697;Initial Catalog=Maintenance;Integrated Security=False;User ID=David;Password=Vancho1988;Connect Timeout=30;Encrypt=False;";
-        public static string user = "", facline = "", mcid = "", msg = "Service is not run", service = "", version = "V4.5", dept = "", fac = "";
+        public static string user = "", facline = "", mcid = "", msg = "Service is not run", service = "", version = "V4.6", dept = "", fac = "";
         public static string Link = "", AppName = "";
         public static int i = 0, Newlg = 0, Oldlg = 0;
         public static DataTable NgonNgu = new DataTable();
