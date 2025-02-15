@@ -16,6 +16,7 @@ using AndroidScreenStretching;
 using CSDL;
 using ZXing.Mobile;
 using static Android.App.ActionBar;
+using static Android.Content.ClipData;
 
 namespace MachineDowntime
 {
@@ -134,8 +135,9 @@ namespace MachineDowntime
                 ListMachineBroken item = ls_broken[e.Position];
                 if (item.KetThuc == "")
                 {
-                    mcid = item.MaMay.Replace("\n", "");
-                    string[] l = { "XÓA", "SỬA MÁY", "KẾT THÚC", "ĐỔI ĐỒ" };
+                    mcid = item.MaMay.Contains("\n") ? item.MaMay.Split("\n")[1] : item.MaMay;
+                    Toast.MakeText(this,mcid + item.MaMay,ToastLength.Long).Show();
+                    string[] l = { Temp.TT("DT25"), Temp.TT("DT26"), Temp.TT("DT27"), Temp.TT("DT28") };// { "XÓA", "SỬA MÁY", "KẾT THÚC", "ĐỔI ĐỒ" };
                     Android.App.AlertDialog.Builder bb = new Android.App.AlertDialog.Builder(this);
 
                     bb.SetSingleChoiceItems(l, -1, (ss, ee) =>
@@ -149,15 +151,15 @@ namespace MachineDowntime
                                 d.Dismiss();
                                 Android.App.AlertDialog.Builder b = new AlertDialog.Builder(this);
 
-                                b.SetMessage("Bạn muốn xóa Mã Máy (" + mcid + ") này khỏi danh sách máy hư ?");
-                                b.SetPositiveButton("XÓA", (s, a) =>
+                                b.SetMessage(Temp.TT("DT65"));// "Bạn muốn xóa Mã Máy (" + mcid + ") này khỏi danh sách máy hư ?");
+                                b.SetPositiveButton(Temp.TT("DT25"), (s, a) =>//"XÓA"
                                 {
                                     kn.Ghi("delete from DowntimeReport where McSerialNo = '" + mcid + "' and FinishTime is null");
 
                                     LoadData();
 
                                 });
-                                b.SetNegativeButton("HỦY", (s, a) => { });
+                                b.SetNegativeButton(Temp.TT("DT63"), (s, a) => { });//"HỦY"
 
                                 b.Create().Show();
                                 break;
@@ -178,7 +180,7 @@ namespace MachineDowntime
                                 break;
                         }
                     });
-                    bb.SetPositiveButton("THOÁT", (ss, ee) => { });
+                    bb.SetPositiveButton(Temp.TT("DT16"), (ss, ee) => { });//"THOÁT"
                     bb.SetCancelable(false);
                     Dialog dd = bb.Create();
                     dd.Window.DecorView.SystemUiVisibility = (StatusBarVisibility)(SystemUiFlags.HideNavigation | SystemUiFlags.Fullscreen | SystemUiFlags.LowProfile | SystemUiFlags.ImmersiveSticky);
@@ -555,7 +557,7 @@ namespace MachineDowntime
                 {
                     ls_broken.Add(new ListMachineBroken
                     {
-                        MaMay = (int.Parse(level) > 0 ? r["FacLine"].ToString() + "\n" : "") + r["McSerialNo"].ToString() + "\n",
+                        MaMay = (int.Parse(level) > 0 ? r["FacLine"].ToString() + "\n" : "") + r["McSerialNo"].ToString(),
                         BatDauHu = r["OccurTime"].ToString() == "" ? "" : DateTime.Parse(r["OccurTime"].ToString()).ToString("dd/MM HH:mm"),
                         BatDauSua = r["StartTime"].ToString() == "" ? "" : DateTime.Parse(r["StartTime"].ToString()).ToString("dd/MM HH:mm"),
                         KetThuc = r["FinishTime"].ToString() == "" ? "" : DateTime.Parse(r["FinishTime"].ToString()).ToString("dd/MM HH:mm"),
@@ -681,18 +683,14 @@ namespace MachineDowntime
                 b.SetPositiveButton(Temp.TT("DT64"), (s, a) =>
                 {
                     ListMachineBroken it = ls_broken[e.Position];
-
-                    kn.Ghi("delete from DowntimeReport where McSerialNo = '" + it.MaMay.Replace("\n", "") + "' and FinishTime is null");
-
+                    kn.Ghi("delete from DowntimeReport where McSerialNo = '" + (it.MaMay.Contains("\n") ? it.MaMay.Split("\n")[1] : it.MaMay) + "' and FinishTime is null");
                     LoadData();
                 });
                 b.SetNegativeButton(Temp.TT("DT63"), (s, a) => { });
-
                 b.Create().Show();
             }
             catch
             {
-
             }
         }
 
@@ -711,7 +709,7 @@ namespace MachineDowntime
             }
         }
 
-        private async void Scan()
+        private async void Scan(bool mc = true)
         {
             try
             {
@@ -724,14 +722,14 @@ namespace MachineDowntime
                 scanner.AutoFocus();
                 var result = await scanner.Scan(new MobileBarcodeScanningOptions { UseNativeScanning = true });
 
-                HandleScanResultLogin(result);
+                HandleScanResultLogin(result, mc);
             }
             catch (Exception ex)
             {
                 Toast.MakeText(this, "Scan failed !!!" + ex.ToString(), ToastLength.Long).Show();
             }
         }
-        private void HandleScanResultLogin(ZXing.Result result)
+        private void HandleScanResultLogin(ZXing.Result result, bool mc)
         {
             if (result != null && !string.IsNullOrEmpty(result.Text))
             {
@@ -760,7 +758,8 @@ namespace MachineDowntime
                             }
                             break;
                         case 3:
-                            if (bc.Contains(Temp.TT("DT62")))//A1A
+                            //if (bc.Contains(Temp.TT("DT62")))//A1A
+                            if (!mc)//Employee scan
                             {
                                 string name = "";
 
@@ -783,13 +782,13 @@ namespace MachineDowntime
                                     SuaMay();
                                 }
                             }
-                            else
+                            else//machine scan
                             {
                                 bool broken = ls_broken.Exists(d => d.MaMay.Contains(bc));
                                 bool repair = ls_repair.Contains(bc);
 
                                 Toast.MakeText(this, broken.ToString(), ToastLength.Long).Show();
-                                if (repair) Toast.MakeText(this, "Máy này đang sửa, xin kiểm tra lại !!!", ToastLength.Long).Show();
+                                if (repair) Toast.MakeText(this, Temp.TT("DT119"), ToastLength.Long).Show();//Máy này đang sửa, xin kiểm tra lại !!!
                                 else
                                 {
                                     if (broken)
@@ -801,15 +800,15 @@ namespace MachineDowntime
                                     {
                                         AlertDialog.Builder b = new AlertDialog.Builder(this);
 
-                                        b.SetMessage("Máy này vẫn chưa trong danh sách máy hư, bạn có muốn thêm vào danh sách không ?");
-                                        b.SetPositiveButton("THÊM", (s, a) =>
+                                        b.SetMessage(Temp.TT("DT120"));//Máy này vẫn chưa trong danh sách máy hư, bạn có muốn thêm vào danh sách không ?
+                                        b.SetPositiveButton(Temp.TT("DT23"), (s, a) =>
                                          {
                                              AddNew(bc);
 
                                              mcid = bc;
                                              SuaMay();
                                          });
-                                        b.SetNegativeButton("THOÁT", (s, a) => { });
+                                        b.SetNegativeButton(Temp.TT("DT16"), (s, a) => { });
 
                                         b.Create().Show();
                                     }
@@ -913,8 +912,8 @@ namespace MachineDowntime
                         v.AddView(lsv);
                         bb.SetView(v);
 
-                        bb.SetPositiveButton("THOÁT", (ss, ee) => { });
-                        bb.SetNeutralButton("QUÉT", (ss, ee) => { Scan(); });
+                        bb.SetPositiveButton("EXIT", (ss, ee) => { });
+                        bb.SetNeutralButton("SCAN", (ss, ee) => { Scan(); });
 
                         bb.SetCancelable(false);
                         Dialog dd = bb.Create();
@@ -968,7 +967,7 @@ namespace MachineDowntime
                         LoadData();
                     }
                 });
-                d_batdau.SetNeutralButton(Temp.TT("DT43"), (ss, aa) => { Scan(); });
+                d_batdau.SetNeutralButton(Temp.TT("DT43"), (ss, aa) => { Scan(false); });
                 d_batdau.SetNegativeButton(Temp.TT("DT16"), (ss, aa) => { });
                 d_batdau.Create().Show();
             }

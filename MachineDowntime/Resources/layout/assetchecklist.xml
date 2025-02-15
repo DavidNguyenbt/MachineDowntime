@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<HorizontalScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <RelativeLayout
+        android:background="@drawable/gradient1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/layoutchkl">
+        <TextView
+            android:text="15/02/2020 10:01:22"
+            android:gravity="right"
+            android:textSize="15dp"
+            android:textColor="#C1CDCD"
+            android:layout_width="183.0dp"
+            android:layout_height="wrap_content"
+            android:minWidth="25px"
+            android:minHeight="25px"
+            android:layout_marginLeft="5dp"
+            android:layout_toRightOf="@id/txtfacline"
+            android:id="@+id/txtdate" />
+        <TextView
+            android:text="DT125"
+            android:textColor="#000000"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="25px"
+            android:minHeight="25px"
+            android:layout_below="@id/txtdate"
+            android:id="@+id/txtten" />
+        <TextView
+            android:text="Nguyen Van A"
+            android:textSize="15dp"
+            android:textColor="#FF3030"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="25px"
+            android:minHeight="25px"
+            android:layout_marginLeft="20dp"
+            android:layout_toRightOf="@id/txtten"
+            android:layout_below="@id/txtdate"
+            android:id="@+id/txtname" />
+        <TextView
+            android:text="DT126"
+            android:textColor="#000000"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="25px"
+            android:minHeight="25px"
+            android:layout_below="@id/txtname"
+            android:id="@+id/txtmc" />
+        <TextView
+            android:text="SING1100"
+            android:textSize="15dp"
+            android:textColor="#FF3030"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="25px"
+            android:minHeight="25px"
+            android:layout_marginLeft="20dp"
+            android:layout_toRightOf="@id/txtmc"
+            android:layout_below="@id/txtname"
+            android:id="@+id/txtmcno" />
+        <TextView
+            android:text="DT127"
+            android:textColor="#000000"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="25px"
+            android:minHeight="25px"
+            android:layout_below="@id/txtmc"
+            android:id="@+id/txttype" />
+        <TextView
+            android:text="1 KIM THUONG/ NORMAL/SINGLE NEEDLE"
+            android:textSize="15dp"
+            android:textColor="#FF3030"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="25px"
+            android:minHeight="25px"
+            android:layout_marginLeft="20dp"
+            android:layout_toRightOf="@id/txttype"
+            android:layout_below="@id/txtmc"
+            android:id="@+id/txtmctype" />
+        <RadioGroup
+            android:minWidth="25px"
+            android:minHeight="25px"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_below="@id/txttype"
+            android:id="@+id/radioGroup1">
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="Weekly"
+                android:id="@+id/q1" />
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Monthly"
+                android:id="@+id/q2" />
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Half-Yearly"
+                android:id="@+id/q3" />
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Yearly"
+                android:id="@+id/q4" />
+        </RadioGroup>
+        <CheckBox
+            android:text="EN"
+            android:checked="false"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/radioGroup1"
+            android:id="@+id/chklg" />
+        <CheckBox
+            android:text="DT114"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/chklg"
+            android:id="@+id/checkBox1" />
+        <Button
+            android:text="DT43"
+            android:textSize="10dp"
+            android:layout_width="70dp"
+            android:layout_height="35dp"
+            android:layout_marginTop="5dp"
+            android:textColor="#FF1493"
+            android:layout_below="@id/checkBox1"
+            android:id="@+id/btscan" />
+        <Button
+            android:text="DT15"
+            android:textSize="10dp"
+            android:layout_width="70dp"
+            android:layout_height="35dp"
+            android:layout_marginTop="5dp"
+            android:textColor="#0000FF"
+            android:layout_toRightOf="@id/btscan"
+            android:layout_below="@id/checkBox1"
+            android:id="@+id/btsave" />
+        <Button
+            android:text="DT128"
+            android:textSize="10dp"
+            android:layout_width="80dp"
+            android:layout_height="35dp"
+            android:layout_marginTop="5dp"
+            android:textColor="#006400"
+            android:layout_toRightOf="@id/btsave"
+            android:layout_below="@id/checkBox1"
+            android:id="@+id/btallgood" />
+        <Button
+            android:text="DT129"
+            android:textSize="10dp"
+            android:layout_width="100dp"
+            android:layout_height="35dp"
+            android:layout_marginTop="5dp"
+            android:textColor="#FF0000"
+            android:layout_toRightOf="@id/btallgood"
+            android:layout_below="@id/checkBox1"
+            android:id="@+id/btallbad" />
+        <Button
+            android:text="DT117"
+            android:textSize="10dp"
+            android:layout_width="80dp"
+            android:layout_height="35dp"
+            android:layout_marginTop="5dp"
+            android:textColor="#000000"
+            android:layout_toRightOf="@id/btallbad"
+            android:layout_below="@id/checkBox1"
+            android:id="@+id/btconfig" />
+
+        <ListView
+            android:minWidth="25px"
+            android:minHeight="25px"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_below="@id/btscan"
+            android:id="@+id/lschecklist" />
+
+    </RelativeLayout>
+</HorizontalScrollView>

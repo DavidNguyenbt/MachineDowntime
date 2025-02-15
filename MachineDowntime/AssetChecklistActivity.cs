@@ -5,48 +5,51 @@ using Android.Graphics;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
-using Android.Webkit;
 using Android.Widget;
 using CSDL;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Timers;
+using Xamarin.Essentials;
 using ZXing.Mobile;
-using static Android.Renderscripts.Sampler;
+using static AndroidX.Navigation.Navigator;
 
 namespace MachineDowntime
 {
     [Activity(Theme = "@style/Theme.AppCompat.Light.NoActionBar.Fullscreen", ScreenOrientation = ScreenOrientation.Portrait, ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden)]
-    public class ChecklistActivity : Activity
+    public class AssetChecklistActivity : Activity
     {
-        TextView txtfacline, txtname, txtmcno, txtmctype, txtdate;
-        Button btscan, btsave, btallgood, btallbad, btconfig, btchecked;
+        TextView txtname, txtmcno, txtmctype, txtdate;
+        Button btscan, btsave, btallgood, btallbad, btconfig;
         ListView lschecklist;
-        RadioButton q1, q2, q3, q4, daily, weekly, monthly;
+        RadioButton weekly, monthly, half_yearly, yearly;
         Connect kn;
-        CheckBox chk;
+        CheckBox chk, chklg;
         RelativeLayout layout;
-        string q = "Q1";
+        string q = "Weekly";
         MobileBarcodeScanner scanner;
         DataTable Data = new DataTable();
         int w = 50, t = 20;
+        bool en = false;
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
 
-            SetContentView(Resource.Layout.checklist);
+            SetContentView(Resource.Layout.assetchecklist);
 
             MobileBarcodeScanner.Initialize(Application);
             scanner = new MobileBarcodeScanner();
+
+            Xamarin.Essentials.Platform.Init(this, savedInstanceState);
 
             kn = new Connect(Temp.chuoi);
 
             layout = FindViewById<RelativeLayout>(Resource.Id.layoutchkl);
 
-            txtfacline = FindViewById<TextView>(Resource.Id.txtfacline); txtfacline.Text = Temp.facline;
             txtname = FindViewById<TextView>(Resource.Id.txtname); txtname.Text = Temp.Login.Rows[0]["Name"].ToString();
             txtmcno = FindViewById<TextView>(Resource.Id.txtmcno); txtmcno.Text = "";
             txtmctype = FindViewById<TextView>(Resource.Id.txtmctype); txtmctype.Text = "";
@@ -57,48 +60,28 @@ namespace MachineDowntime
             btallgood = FindViewById<Button>(Resource.Id.btallgood);
             btallbad = FindViewById<Button>(Resource.Id.btallbad);
             btconfig = FindViewById<Button>(Resource.Id.btconfig);
-            btchecked = FindViewById<Button>(Resource.Id.btchecked);
 
             chk = FindViewById<CheckBox>(Resource.Id.checkBox1);
+            chklg = FindViewById<CheckBox>(Resource.Id.chklg);
+
+            if (Temp.Newlg == 2)
+            {
+                en = true;
+                chklg.Checked = en;
+            }
+            chklg.CheckedChange += delegate { if (chklg.Checked) en = true; else en = false; LoadList(); };
 
             lschecklist = FindViewById<ListView>(Resource.Id.lschecklist);
 
-            q1 = FindViewById<RadioButton>(Resource.Id.q1); q1.CheckedChange += delegate { if (q1.Checked) SetQ(1); };
-            q2 = FindViewById<RadioButton>(Resource.Id.q2); q2.CheckedChange += delegate { if (q2.Checked) SetQ(2); };
-            q3 = FindViewById<RadioButton>(Resource.Id.q3); q3.CheckedChange += delegate { if (q3.Checked) SetQ(3); };
-            q4 = FindViewById<RadioButton>(Resource.Id.q4); q4.CheckedChange += delegate { if (q4.Checked) SetQ(4); };
-            daily = FindViewById<RadioButton>(Resource.Id.daily); daily.CheckedChange += delegate { if (daily.Checked) SetQ(5); };
-            weekly = FindViewById<RadioButton>(Resource.Id.weekly); weekly.CheckedChange += delegate { if (weekly.Checked) SetQ(6); };
-            monthly = FindViewById<RadioButton>(Resource.Id.monthly); monthly.CheckedChange += delegate { if (monthly.Checked) SetQ(7); };
+            weekly = FindViewById<RadioButton>(Resource.Id.q1); weekly.CheckedChange += delegate { if (weekly.Checked) { q = weekly.Text; SetQ(); } };
+            monthly = FindViewById<RadioButton>(Resource.Id.q2); monthly.CheckedChange += delegate { if (monthly.Checked) { q = monthly.Text; SetQ(); } };
+            half_yearly = FindViewById<RadioButton>(Resource.Id.q3); half_yearly.CheckedChange += delegate { if (half_yearly.Checked) { q = half_yearly.Text; SetQ(); } };
+            yearly = FindViewById<RadioButton>(Resource.Id.q4); yearly.CheckedChange += delegate { if (yearly.Checked) { q = yearly.Text; SetQ(); } };
 
-            void SetQ(int value)
+            void SetQ()
             {
-                if (value < 5) q = "Q" + value;
-                else
-                {
-                    if (value == 5) q = "Daily";
-                    else if (value == 6) q = "Weekly";
-                    else if (value == 7) q = "Monthly";
-                }
-
                 Toast.MakeText(this, q, ToastLength.Long).Show();
-                if (chk.Checked)
-                {
-                    if (Data.Rows.Count > 0)
-                    {
-                        foreach (DataRow row in Data.Rows)
-                        {
-                            row["CheckedBy"] = "";
-                            row["CheckedDate"] = DBNull.Value;
-                            row["Remark"] = "";
-                        }
-
-                        Data.AcceptChanges();
-
-                        LoadList();
-                    }
-                }
-                else LoadData();
+                LoadData();
             }
 
             Timer tm = new Timer();
@@ -111,8 +94,6 @@ namespace MachineDowntime
                     txtdate.Text = DateTime.Now.ToString("G");
                 });
             };
-
-            if (int.Parse(Temp.Login.Rows[0]["Levels"].ToString()) == 0) btchecked.Visibility = ViewStates.Gone;
 
             btscan.Click += async delegate
             {
@@ -132,9 +113,7 @@ namespace MachineDowntime
                 {
                     if (txt.Text != "")
                     {
-                        txtmcno.Text = txt.Text.ToUpper();
-
-                        LoadMCNo();
+                        ReadMCNo(txt.Text);
                     }
                 });
 
@@ -145,19 +124,19 @@ namespace MachineDowntime
             {
                 if (a.Position > 0)
                 {
-                    string[] it = { "Good", "Bad", "Input remark" };
+                    string[] it = { Temp.TT("DT128"), Temp.TT("DT129"), Temp.TT("DT130"), Temp.TT("DT132") }; //"Good", "Bad", "Input remark"
 
                     Android.App.AlertDialog.Builder b = new AlertDialog.Builder(this);
                     Dialog d = new Dialog(this);
 
-                    b.SetSingleChoiceItems(it, -1, (s, aa) =>
+                    b.SetSingleChoiceItems(it, -1, async (s, aa) =>
                     {
                         DataRow r = Data.Rows[a.Position - 1];
 
                         if (aa.Which == 2)
                         {
                             Android.App.AlertDialog.Builder bb = new AlertDialog.Builder(this);
-                            EditText ed = new EditText(this) { Hint = "Input remark here", LayoutParameters = new ViewGroup.LayoutParams(300, ViewGroup.LayoutParams.WrapContent) };
+                            EditText ed = new EditText(this) { Hint = Temp.TT("DT131"), LayoutParameters = new ViewGroup.LayoutParams(300, ViewGroup.LayoutParams.WrapContent) };//"Input remark here"
 
                             bb.SetPositiveButton("OK", (s1, a1) =>
                             {
@@ -171,41 +150,9 @@ namespace MachineDowntime
 
                                 d.Dismiss();
                             });
-
-                            bb.SetView(ed);
-                            bb.Create().Show();
-                        }
-                        else
-                        {
-                            if(aa.Which==1)
+                            bb.SetNeutralButton("ALL", (s1, a1) =>
                             {
-                                AlertDialog.Builder bb = new AlertDialog.Builder(this);
-                                Dialog dd = new Dialog(this);
-
-                                string[] itit = { "Repair", "Replace" };
-
-                                bb.SetSingleChoiceItems(itit, -1, (x, y) =>
-                                {
-                                    r["Result"] = it[aa.Which];
-                                    r["Status"] = itit[y.Which];
-
-                                    Data.AcceptChanges();
-
-                                    LoadList();
-
-                                    btsave.Visibility = ViewStates.Visible;
-
-                                    dd.Dismiss();
-                                    d.Dismiss();
-                                });
-
-                                bb.SetCancelable(false);
-                                dd = bb.Create();
-                                dd.Show();
-                            }
-                            else
-                            {
-                                r["Result"] = it[aa.Which];
+                                foreach (DataRow dr in Data.Rows) dr["Remark"] = ed.Text;
 
                                 Data.AcceptChanges();
 
@@ -214,7 +161,53 @@ namespace MachineDowntime
                                 btsave.Visibility = ViewStates.Visible;
 
                                 d.Dismiss();
+                            });
+
+                            bb.SetView(ed);
+                            bb.Create().Show();
+                        }
+                        else if (aa.Which == 3)
+                        {
+                            var result = await MediaPicker.CapturePhotoAsync(new MediaPickerOptions { Title = "Please take your picture" });
+
+                            if (result != null)
+                            {
+                                var stream = await result.OpenReadAsync();
+
+                                string imgname = DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".jpg";
+
+                                var file = System.IO.Path.Combine(Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryPictures).AbsolutePath, imgname);
+
+                                using (FileStream fs = File.Open(file, FileMode.CreateNew))
+                                {
+                                    await stream.CopyToAsync(fs);
+                                    await fs.FlushAsync();
+
+                                    r["ImageName"] = imgname;
+                                    r["ImagePath"] = file;
+
+                                    Data.AcceptChanges();
+
+                                    LoadList();
+
+                                    btsave.Visibility = ViewStates.Visible;
+
+                                    d.Dismiss();
+                                }
                             }
+                        }
+                        else
+                        {
+                            if (aa.Which == 1) r["Result"] = "0";
+                            else r["Result"] = "1";
+
+                            Data.AcceptChanges();
+
+                            LoadList();
+
+                            btsave.Visibility = ViewStates.Visible;
+
+                            d.Dismiss();
                         }
                     });
 
@@ -227,57 +220,43 @@ namespace MachineDowntime
             {
                 if (Data.Rows.Count > 0)
                 {
-                    string qr = "exec GetData 20,'" + q + "',N'" + txtmctype.Text + "','" + txtmcno.Text + "' \n";
-                    string transdate = "";
-
-                    switch (q)
-                    {
-                        case "Daily":
-                            transdate = "GETDATE()";
-                            break;
-                        case "Weekly":
-                            transdate = "DATEADD(WEEK, DATEDIFF(WEEK, 0, DATEADD(DAY, -1, GETDATE())), 0)";
-                            break;
-                        case "Monthly":
-                            transdate = "DATEADD(MONTH, DATEDIFF(month, 0, GETDATE()), 0)";
-                            break;
-                        default:
-                            transdate = "DATEADD(QUARTER, " + q.Substring(1, 1) + " - 1,DATEADD(yy, DATEDIFF(yy, 0, GETDATE()), 0))";
-                            break;
-                    }
-
+                    string qry = "";
                     foreach (DataRow row in Data.Rows)
                     {
-                        qr += "insert into MachineCheckListResult values (" + row["ID"] + ",'" + txtfacline.Text + "','" + txtmcno.Text + "','" + Temp.user + "'," + transdate + ",'" + row["Result"] + "','" + Temp.user
-                                + "',getdate(),'" + q + "','" + row["CheckedBy"] + "'," + (row["CheckedDate"].ToString() == "" ? "null" : "'" + DateTime.Parse(row["CheckedDate"].ToString()).ToString("yyyyMMdd") + "'") + ",N'" + row["Remark"] + "') \n";
+                        if (row["Result"].ToString() != "")
+                        {
+                            qry += "exec [dbo].[UpdateHRAssetChecklistResult] '" + txtmcno.Text + "',N'" + txtmctype.Text + "','" + q + "'," + row["ID"] + "," + row["Result"] + ",N'" + row["Remark"] + "','" + row["ImageName"] + "','" + Temp.user + "' \n";
 
-                        if (row["Status"].ToString() != "") 
-                            qr += "insert into MachineCheckListAlertSparepart values ('" + txtfacline.Text + "'," + transdate + ",'" + txtmcno.Text + "'," + row["ID"] + ",'" + q + "','" + row["Status"] + "',null,null,null,getdate(),'" + Temp.user + "')";
-                    }    
-
-                    kn.Ghi(qr);
-
-                    if (kn.ErrorMessage == "")
-                    {
-                        Toast.MakeText(this, "Saved successfully !!!", ToastLength.Long).Show();
-                        btsave.Visibility = ViewStates.Gone;
+                            if (row["ImagePath"].ToString() != "")
+                            {
+                                System.Net.WebClient Client = new System.Net.WebClient();
+                                Client.Headers.Add("Content-Type", "binary/octet-stream");
+                                byte[] result = Client.UploadFile(Temp.url + "hrassetchecklist.php", "POST", row["ImagePath"].ToString());
+                                string Result_msg = System.Text.Encoding.UTF8.GetString(result, 0, result.Length);
+                                Toast.MakeText(Application.Context, Result_msg, ToastLength.Long).Show();
+                            }
+                        }
                     }
-                    else
+
+                    if (qry != "")
                     {
-                        Toast.MakeText(this, qr, ToastLength.Long).Show();
-                        Toast.MakeText(this, "Save failed !!! " + kn.ErrorMessage, ToastLength.Long).Show();
+                        kn.Ghi(qry);
+
+                        if (kn.ErrorMessage == "")
+                        {
+                            Toast.MakeText(Application.Context, "Done !!!", ToastLength.Long).Show();
+                            btsave.Visibility = ViewStates.Gone;
+                        }
+                        else Toast.MakeText(Application.Context, kn.ErrorMessage, ToastLength.Long).Show();
                     }
+
                 }
             };
             btallgood.Click += delegate
             {
                 if (Data.Rows.Count > 0)
                 {
-                    foreach (DataRow row in Data.Rows)
-                    {
-                        row["Result"] = "Good";
-                        row["Status"] = "";
-                    }
+                    foreach (DataRow row in Data.Rows) row["Result"] = "1";
 
                     Data.AcceptChanges();
 
@@ -290,11 +269,7 @@ namespace MachineDowntime
             {
                 if (Data.Rows.Count > 0)
                 {
-                    foreach (DataRow row in Data.Rows)
-                    {
-                        row["Result"] = "Bad";
-                        row["Status"] = "Repair";
-                    }
+                    foreach (DataRow row in Data.Rows) row["Result"] = "0";
 
                     Data.AcceptChanges();
 
@@ -302,12 +277,6 @@ namespace MachineDowntime
 
                     btsave.Visibility = ViewStates.Visible;
                 }
-            };
-            btchecked.Click += delegate
-            {
-                kn.Doc("exec TPMUpdateCheckedBy '" + txtmcno.Text + "',N'" + txtmctype.Text + "','" + q + "','" + Temp.user + "'");
-
-                LoadData();
             };
             btconfig.Click += delegate
             {
@@ -340,23 +309,6 @@ namespace MachineDowntime
                 b.SetView(ln);
                 b.Create().Show();
             };
-            txtfacline.Click += delegate
-            {
-                var line = Temp.FacLine.Select("FacZone like '%" + Temp.fac + "%'").Select(l => l[1].ToString()).Distinct().ToArray();
-                line = line.Concat(new string[] { Temp.fac + "PPA", Temp.fac + "JUMPER" }).ToArray();
-                Android.App.AlertDialog.Builder b = new Android.App.AlertDialog.Builder(this);
-
-                b.SetSingleChoiceItems(line, -1, (s, a) =>
-                {
-                    Dialog d = s as Dialog;
-
-                    txtfacline.Text = line[a.Which];
-
-                    d.Dismiss();
-                });
-                b.SetCancelable(false);
-                b.Create().Show();
-            };
 
             SetLanguage();
         }
@@ -369,37 +321,81 @@ namespace MachineDowntime
 
                 if (result.Text != "")
                 {
-                    txtmcno.Text = result.Text.Contains('|') ? result.Text.Split('|').First().Trim().ToUpper() : result.Text;
+                    string rs = result.Text.Contains('|') ? result.Text.Split('|').First().Trim().ToUpper() : result.Text;
 
-                    LoadMCNo();
+                    ReadMCNo(rs);
                 }
             }
         }
-        private void LoadMCNo()
+        private void ReadMCNo(string mc)
         {
-            DataTable d1 = kn.Doc("exec GetData 18,'" + txtmcno.Text + "','',''").Tables[0];
+            if (chk.Checked)
+            {
+                if (txtmcno.Text == "") run();
+                else
+                {
+                    if (mc.Substring(0, 4) == txtmcno.Text.Substring(0, 4))
+                    {
+                        run(false);
+                        btsave.Visibility = ViewStates.Visible;
+                    }
+                    else
+                    {
+                        Android.App.AlertDialog.Builder b = new AlertDialog.Builder(this);
+                        b.SetMessage(Temp.TT("DT133"));
+
+                        b.SetPositiveButton(Temp.TT("DT48"), (s, a) =>
+                        {
+                            run();
+                        });
+                        b.SetNegativeButton(Temp.TT("DT44"), (s, a) => { });
+
+                        b.SetCancelable(false);
+                        b.Create().Show();
+                    }
+                }
+            }
+            else run();
+
+            void run(bool load = true)
+            {
+                txtmcno.Text = mc;
+
+                LoadMCNo(load);
+            }
+        }
+        private void LoadMCNo(bool load)
+        {
+            DataTable d1 = kn.Doc("exec GetData 60,'" + txtmcno.Text + "','',''").Tables[0];
 
             txtmctype.Text = "";
-            lschecklist.Adapter = null;
 
             if (d1.Rows.Count > 0)
             {
-                Android.App.AlertDialog.Builder b = new AlertDialog.Builder(this);
-                Dialog d = new Dialog(this);
-
-                string[] it = d1.Select().Select(s => s[0].ToString()).ToArray();
-
-                b.SetSingleChoiceItems(it, -1, (s, a) =>
+                if (d1.Rows.Count == 1)
                 {
-                    txtmctype.Text = it[a.Which];
-                    LoadData();
+                    txtmctype.Text = d1.Rows[0][0].ToString();
+                    if (load) LoadData();
+                }
+                else
+                {
+                    Android.App.AlertDialog.Builder b = new AlertDialog.Builder(this);
+                    Dialog d = new Dialog(this);
 
-                    d.Dismiss();
-                });
+                    string[] it = d1.Select().Select(s => s[0].ToString()).ToArray();
 
-                b.SetCancelable(false);
-                d = b.Create();
-                d.Show();
+                    b.SetSingleChoiceItems(it, -1, (s, a) =>
+                    {
+                        txtmctype.Text = it[a.Which];
+                        if (load) LoadData();
+
+                        d.Dismiss();
+                    });
+
+                    b.SetCancelable(false);
+                    d = b.Create();
+                    d.Show();
+                }
             }
             else Toast.MakeText(this, "This machine checklist was not updated, please check with Admin !!!", ToastLength.Long).Show();
         }
@@ -407,17 +403,31 @@ namespace MachineDowntime
         {
             if (txtmcno.Text != "" && txtmctype.Text != "")
             {
-                Data = kn.Doc("exec GetData 19,'" + txtmcno.Text + "',N'" + txtmctype.Text + "','" + q + "'").Tables[0];
+                Data.Rows.Clear();
+
+                Data = kn.Doc("exec GetData 61,'" + txtmcno.Text + "',N'" + txtmctype.Text + "','" + q + "'").Tables[0];
                 LoadList();
             }
         }
         private void LoadList()
         {
-            lschecklist.Adapter = new A1ATeam.ListViewAdapterWithNoLayout(Data, new List<int> { LayoutRequest.Widht(w), LayoutRequest.Widht(w * 8), LayoutRequest.Widht(w * 2), LayoutRequest.Widht(w * 3), LayoutRequest.Widht(w * 3), 
-                                                        LayoutRequest.Widht(w * 2), LayoutRequest.Widht(w * 3), LayoutRequest.Widht(w * 3), LayoutRequest.Widht(w * 3), LayoutRequest.Widht(w * 3), LayoutRequest.Widht(w * 8) }, true)
+            DataTable dt = new DataTable();
+
+            if (en) dt = Data.DefaultView.ToTable(true, "ID", "ChecklistEN", "Result", "Remark", "ImageName");
+            else dt = Data.DefaultView.ToTable(true, "ID", "ChecklistVN", "Result", "Remark", "ImageName");
+
+            foreach (DataRow dr in dt.Rows)
+            {
+                if (dr["Result"].ToString() == "1") dr["Result"] = Temp.TT("DT128");
+                else if (dr["Result"].ToString() == "0") dr["Result"] = Temp.TT("DT129");
+
+                dt.AcceptChanges();
+            }
+
+            lschecklist.Adapter = new A1ATeam.ListViewAdapterWithNoLayout(dt, new List<int> { LayoutRequest.Widht(w), LayoutRequest.Widht(w * 8), LayoutRequest.Widht(w * 3), LayoutRequest.Widht(w * 4), LayoutRequest.Widht(w * 4) }, true)
             {
                 TextSize = LayoutRequest.TextSize(t),
-                TextHilight = new List<A1ATeam.TextHilight> { new A1ATeam.TextHilight { ColumnIndex = 2, Condition = "Good", Color = Color.Green }, new A1ATeam.TextHilight { ColumnIndex = 2, Condition = "Bad", Color = Color.Red } }
+                TextHilight = new List<A1ATeam.TextHilight> { new A1ATeam.TextHilight { ColumnIndex = 2, Condition = Temp.TT("DT128"), Color = Color.DarkGreen }, new A1ATeam.TextHilight { ColumnIndex = 2, Condition = Temp.TT("DT129"), Color = Color.Red } }
             };
         }
         private void SetLanguage()

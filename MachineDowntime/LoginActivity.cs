@@ -45,20 +45,13 @@ namespace MachineDowntime       //Theme = "@style/Theme.AppCompat.Light.NoAction
         string[] language = { "VN", "EN", "KHM", "THAI" };
         Connect kn, cn;
         bool tt = true;
-        protected override void OnCreate(Bundle savedInstanceState)
+        protected override async void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
             SetContentView(Resource.Layout.login);
 
-            //ShowNotification("App opening");
-
             Xamarin.Forms.Forms.Init(this, savedInstanceState);
             RequestInit.Init(this);
-            //FingerprintManagerCompat fingerprintManager = FingerprintManagerCompat.From(this);
-            //if (fingerprintManager.IsHardwareDetected)
-            //{
-            //    FingerPrintAuthenticationExample();
-            //}
 
             Window.AddFlags(WindowManagerFlags.Fullscreen);
             Window.AddFlags(WindowManagerFlags.TranslucentNavigation);
@@ -81,419 +74,437 @@ namespace MachineDowntime       //Theme = "@style/Theme.AppCompat.Light.NoAction
             layout = FindViewById<RelativeLayout>(Resource.Id.layoutlogin);
 
             Temp.metric = Resources.DisplayMetrics;
-            //ScreenStretching.Stretching(Temp.metric, this, layout);
-            //Temp.Density(layout);
 
-            //edten.Text = "CHO"; edmk.Text = "?"; edfac.Text = "F1"; edline.Text = "F1A05";
-
-            try
+            //string ping = "192.168.10.245";
+            bool ex = await NetworkHelper.CanPing(Temp.ping);
+            if (ex) Run();
+            else
             {
-                ISharedPreferences pre = GetSharedPreferences("MachineDowntime", FileCreationMode.Private);
+                Android.App.AlertDialog.Builder b = new Android.App.AlertDialog.Builder(this);
+                Dialog d = new Dialog(this);
+                string[] item = { "A1A - VietNam", "TRX - Thailand", "TAC - Cambodia", "Outside Network" };
+                b.SetSingleChoiceItems(item, -1, (s, a) =>
+                {
+                    switch(a.Which)
+                    {
+                        case 0:
+                            Run();
+                            break;
+                        case 1:
+                            Temp.chuoi = Temp.TRX_chuoi;
+                            Temp.com = Temp.TRX_com;
+                            Run();
+                            break;
+                        case 2:
+                            Temp.chuoi = Temp.TAC_chuoi;
+                            Temp.com = Temp.TAC_com;
+                            Run();
+                            break;
+                        case 3:
+                            Run(false);
+                            break;
+                    }
 
-                string ch0 = pre.GetString("server1", "").ToString();
-                if (ch0 != "") Temp.chuoi = ch0;
+                    d.Dismiss();
+                });
 
-                string ch1 = pre.GetString("server2", "").ToString();
-                if (ch1 != "") Temp.com = ch1;
+                b.SetCancelable(false);
+                d = b.Create();
 
-                kn = new Connect(Temp.chuoi);
-
-                string ch2 = pre.GetString("user", "").ToString();
-                if (ch2 != "") edten.Text = ch2;
-
-                string ch3 = pre.GetString("fac", "").ToString();
-                if (ch3 != "") edfac.Text = ch3;
-
-                string ch4 = pre.GetString("line", "").ToString();
-                if (ch4 != "") edline.Text = ch4;
-
-                Temp.Newlg = 2;
-                int ch5 = pre.GetInt("lg", 0);
-                if (ch5 != 0) Temp.Newlg = ch5;
-                chlg.Text = language[Temp.Newlg - 1];
-                chlg.Checked = true;
-
-                Temp.NgonNgu = kn.Doc("select * from LanguageTable").Tables[0];
-
-                DataRow row = kn.Doc("select * from LanguageTable where ItemNO = 'UPDATE'").Tables[0].Rows[0];
-
-                Temp.Link = row[1].ToString();
-                if (Temp.Link != "") Temp.AppName = Temp.Link.Split('/').Last();
-
-                string obli = row[2].ToString();
-                if (obli == "1") Temp.Obli = true;
-                else Temp.Obli = false;
-
-                cn = new Connect(Temp.com);
-                Temp.FacLine = kn.Doc("exec GetData 14,'','',''").Tables[0];
-            }
-            catch (Exception ex)
-            {
-                Toast.MakeText(this, ex.ToString(), ToastLength.Long).Show();
+                d.Show();
             }
 
-            edfac.Focusable = false;
-            edline.Focusable = false;
-
-            edfac.Click += delegate
+            void Run(bool update = true)
             {
                 try
                 {
-                    edline.Text = "";
-                    Android.App.AlertDialog.Builder b = new Android.App.AlertDialog.Builder(this);
-                    var fac = Temp.FacLine.Select().Select(s => s[0].ToString()).Distinct().ToArray();//Temp.FacLine.Select().Select(dr => dr[0].ToString()[dr[0].ToString().IndexOf("F")..]).Distinct().ToArray();
+                    ISharedPreferences pre = GetSharedPreferences("MachineDowntime", FileCreationMode.Private);
 
-                    b.SetSingleChoiceItems(fac, -1, (s, a) =>
+                    if (update)
                     {
-                        Dialog d = s as Dialog;
+                        string ch0 = pre.GetString("server1", "").ToString();
+                        if (ch0 != "") Temp.chuoi = ch0;
 
-                        edfac.Text = fac[a.Which];
+                        string ch1 = pre.GetString("server2", "").ToString();
+                        if (ch1 != "") Temp.com = ch1;
+                    }
+                    else
+                    {
+                        Temp.chuoi = Temp.out_chuoi;
+                        Temp.com = Temp.out_com;
+                    }
 
-                        d.Dismiss();
-                    });
-                    b.SetCancelable(false);
-                    b.Create().Show();
+                    kn = new Connect(Temp.chuoi);
+
+                    string ch2 = pre.GetString("user", "").ToString();
+                    if (ch2 != "") edten.Text = ch2;
+
+                    string ch3 = pre.GetString("fac", "").ToString();
+                    if (ch3 != "") edfac.Text = ch3;
+
+                    string ch4 = pre.GetString("line", "").ToString();
+                    if (ch4 != "") edline.Text = ch4;
+
+                    Temp.Newlg = 2;
+                    int ch5 = pre.GetInt("lg", 0);
+                    if (ch5 != 0) Temp.Newlg = ch5;
+                    chlg.Text = language[Temp.Newlg - 1];
+                    chlg.Checked = true;
+
+                    Temp.NgonNgu = kn.Doc("select * from LanguageTable").Tables[0];
+
+                    DataRow row = kn.Doc("select * from LanguageTable where ItemNO = 'UPDATE'").Tables[0].Rows[0];
+
+                    Temp.Link = row[1].ToString();
+                    if (Temp.Link != "") Temp.AppName = Temp.Link.Split('/').Last();
+
+                    string obli = row[2].ToString();
+                    if (obli == "1") Temp.Obli = true;
+                    else Temp.Obli = false;
+
+                    cn = new Connect(Temp.com);
+                    Temp.FacLine = kn.Doc("exec GetData 14,'cho','',''").Tables[0];
+                    string qry = update ? "select * from InlineQCSystem where STT = 8" : "select * from InlineQCSystem where STT = 105";
+                    Temp.url = cn.Doc(qry).Tables[0].Rows[0][0].ToString();
                 }
-                catch { }
-            };
-            edline.Click += delegate
-            {
-                try
+                catch (Exception ex)
                 {
-                    if (edfac.Text != "")
-                    {
-                        var line = Temp.FacLine.Select("FacZone like '%" + edfac.Text + "%'").Select(l => l[1].ToString()).Distinct().ToArray();
-                        line = line.Concat(new string[] { edfac.Text + "PPA", edfac.Text + "JUMPER" }).ToArray();
-                        Android.App.AlertDialog.Builder b = new Android.App.AlertDialog.Builder(this);
+                    Toast.MakeText(this, ex.ToString(), ToastLength.Long).Show();
+                }
 
-                        b.SetSingleChoiceItems(line, -1, (s, a) =>
+                edfac.Focusable = false;
+                edline.Focusable = false;
+
+                edfac.Click += delegate
+                {
+                    try
+                    {
+                        edline.Text = "";
+                        Android.App.AlertDialog.Builder b = new Android.App.AlertDialog.Builder(this);
+                        var fac = Temp.FacLine.Select().Select(s => s[0].ToString()).Distinct().ToArray();//Temp.FacLine.Select().Select(dr => dr[0].ToString()[dr[0].ToString().IndexOf("F")..]).Distinct().ToArray();
+
+                        b.SetSingleChoiceItems(fac, -1, (s, a) =>
                         {
                             Dialog d = s as Dialog;
 
-                            edline.Text = line[a.Which];
+                            edfac.Text = fac[a.Which];
 
                             d.Dismiss();
                         });
                         b.SetCancelable(false);
                         b.Create().Show();
                     }
-                }
-                catch { }
-            };
-            btexit.Click += delegate { System.Diagnostics.Process.GetCurrentProcess().Kill(); };
-            btexit.LongClick += delegate
-            {
-                StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
-                StrictMode.SetVmPolicy(builder.Build());
-
-                string file = Android.OS.Environment.ExternalStorageDirectory + "/download/" + Temp.AppName;
-                Java.IO.File apkFile = new Java.IO.File(file);
-                Android.Net.Uri uri = Android.Net.Uri.FromFile(apkFile);//Android.Net.Uri.FromFile(apkFile);
-
-
-                //Intent intent = new Intent(Intent.ActionPackageAdded);
-                ////intent.SetAction(Intent.ActionInstallPackage);
-                //intent.SetDataAndType(uri, "application/vnd.android.package-archive");
-                //StartActivity(intent);
-
-
-
-                //Intent webIntent = new Intent(Intent.ActionInstallPackage);//Intent.ACTION_VIEWApplication.Context, Class);//this, Class);//
-                //webIntent.SetDataAndType(uri, "application/vnd.android.package-archive");
-                ////webIntent.SetAction("com.example.android.apis.content.SESSION_API_PACKAGE_INSTALLED");
-                //webIntent.SetFlags(ActivityFlags.ClearTop | ActivityFlags.NewTask | ActivityFlags.GrantPersistableUriPermission);
-                //webIntent.PutExtra(Intent.ExtraNotUnknownSource, true);
-                //Application.Context.StartActivity(webIntent);
-
-                PackageManager.CanRequestPackageInstalls();
-                var packageInstaller = PackageManager.PackageInstaller;
-                var sessionParams = new PackageInstaller.SessionParams(PackageInstallMode.InheritExisting);
-                int sessionId = packageInstaller.CreateSession(sessionParams);
-                var session = packageInstaller.OpenSession(sessionId);
-
-                AddApkToInstallSession(uri, session);
-
-                // Create an install status receiver.
-                Intent intent = new Intent(this, Class);
-                intent.SetAction("com.example.android.apis.content.SESSION_API_PACKAGE_INSTALLED");
-                PendingIntent pendingIntent = PendingIntent.GetActivity(this, 3439, intent, PendingIntentFlags.UpdateCurrent);
-                IntentSender statusReceiver = pendingIntent.IntentSender;
-
-                // Commit the session (this will start the installation workflow).
-                session.Commit(statusReceiver);
-                //session.Close();
-
-                //Finish();
-                Toast.MakeText(this, "Updated !!!", ToastLength.Long).Show();
-            };
-            btlogin.Click += delegate
-            {
-                try
+                    catch { }
+                };
+                edline.Click += delegate
                 {
-                    if (edten.Text == "")
+                    try
                     {
-                        Toast.MakeText(this, Temp.TT("DT37"), ToastLength.Long).Show();
-                        edten.RequestFocus();
-                    }
-                    else if (edline.Text == "")
-                    {
-                        Toast.MakeText(this, Temp.TT("DT38"), ToastLength.Long).Show();
-                        edten.RequestFocus();
-                    }
-                    else
-                    {
-                        if (Temp.Login.Rows.Count > 0) Temp.Login.Rows.Clear();
-
-                        Temp.Login = cn.Doc("exec GetDataFromQuery 30,'" + edfac.Text + "','" + edline.Text + "','" + edten.Text + "','" + edmk.Text + "',''").Tables[0];
-
-                        if (Temp.Login.Rows.Count == 0)
+                        if (edfac.Text != "")
                         {
-                            Toast.MakeText(this, Temp.TT("DT39"), ToastLength.Long).Show();
-                            edmk.Text = "";
-                            edten.RequestFocus();
-                        }
-                        else
-                        {
-                            Toast.MakeText(this, Temp.TT("DT40"), ToastLength.Long).Show();
+                            string fac = edfac.Text.Length > 2 ? edfac.Text.Substring(3) : edfac.Text;
+                            var line = Temp.FacLine.Select("FacZone like '%" + edfac.Text + "%'").Select(l => l[1].ToString()).Distinct().ToArray();
+                            line = line.Concat(new string[] { fac + "PPA", fac + "JUMPER" }).ToArray();
+                            Android.App.AlertDialog.Builder b = new Android.App.AlertDialog.Builder(this);
 
-                            DataRow r = Temp.Login.Rows[0];
-
-                            ISharedPreferences edpre = GetSharedPreferences("MachineDowntime", FileCreationMode.Private);
-                            ISharedPreferencesEditor editor = edpre.Edit();
-                            editor.PutString("user", r["ID"].ToString());
-                            editor.PutString("fac", edfac.Text);
-                            editor.PutString("line", edline.Text);
-                            editor.PutInt("lg", Temp.Newlg);
-                            editor.Commit();
-
-                            Temp.user = r["ID"].ToString();
-                            Temp.dept = r["Section"].ToString();
-                            Temp.facline = edline.Text;
-                            Temp.fac = edfac.Text;
-                            edmk.Text = "";
-
-                            Android.App.AlertDialog.Builder b = new AlertDialog.Builder(this);
-                            string[] it = { "MACHINE LOCATION", "MACHINE DOWNTIME", "LOADING DATA", "ACC/INPUT DOWNTIME","TPM CHECKLIST" };
-                            b.SetSingleChoiceItems(it, -1, (s, a) =>
+                            b.SetSingleChoiceItems(line, -1, (s, a) =>
                             {
                                 Dialog d = s as Dialog;
 
-                                if (a.Which == 0)
-                                {
-                                    if (Temp.Location.Rows.Count > 0) Temp.Location.Rows.Clear();
-                                    Temp.Location = kn.Doc("select * from location").Tables[0];
-
-                                    Intent location = new Intent(this, typeof(LocationActivity));
-                                    StartActivity(location);
-                                }
-                                else if (a.Which == 1)
-                                {
-                                    //DependencyService.Get<IStartService>().StartForegroundServiceCompat();
-
-                                    Intent main = new Intent(this, typeof(MainActivity));
-                                    StartActivity(main);
-                                }
-                                else if (a.Which == 2)
-                                {
-                                    //DependencyService.Get<IStartService>().StartForegroundServiceCompat();
-
-                                    Intent scan = new Intent(this, typeof(ScanLoadActivity));
-                                    StartActivity(scan);
-                                }
-                                else if (a.Which == 3)
-                                {
-                                    //DependencyService.Get<IStartService>().StartForegroundServiceCompat();
-
-                                    Intent scan = new Intent(this, typeof(InputDowntimeActivity));
-                                    StartActivity(scan);
-                                }
-                                else if (a.Which == 4)
-                                {
-                                    //DependencyService.Get<IStartService>().StartForegroundServiceCompat();
-
-                                    Intent scan = new Intent(this, typeof(ChecklistActivity));
-                                    StartActivity(scan);
-                                }
+                                edline.Text = line[a.Which];
 
                                 d.Dismiss();
                             });
-
+                            b.SetCancelable(false);
                             b.Create().Show();
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    Toast.MakeText(this, Temp.TT("DT41") + ex.ToString(), ToastLength.Long).Show();
-                    edmk.Text = "";
-                }
-            };
-            btlogin.LongClick += delegate { Toast.MakeText(this, "Density: " + Temp.metric.Density + "|DensityDPI: " + Temp.metric.Density + "|Height DPI: " + Temp.metric.HeightPixels + "|Width DPI: " + Temp.metric.WidthPixels + "|Y DPI: " + Temp.metric.Ydpi + "|X DPI: " + Temp.metric.Xdpi + "|Scale: " + Temp.metric.ScaledDensity, ToastLength.Long).Show(); };
-            chlg.Click += Chlg_Click;
-            txtserver.Click += delegate
-            {
-                try
-                {
-                    Android.App.AlertDialog.Builder l = new AlertDialog.Builder(this);
-
-                    EditText ed = new EditText(this)
-                    {
-                        Hint = "INPUT PASSWORD",//Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT17").FirstOrDefault()[Temp.Newlg].ToString(),
-                        LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
-                        InputType = Android.Text.InputTypes.TextVariationPassword,
-                        TransformationMethod = new PasswordTransformationMethod()
-                    };
-
-                    l.SetView(ed);
-                    l.SetPositiveButton("NEXT", (ss, aa) =>  //Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT18").FirstOrDefault()[Temp.Newlg].ToString()
-                    {
-                        if (ed.Text == "pro123")
-                        {
-                            try
-                            {
-                                Android.App.AlertDialog.Builder b = new AlertDialog.Builder(this);
-
-                                LinearLayout l1 = new LinearLayout(this)
-                                {
-                                    Orientation = Orientation.Vertical
-                                };
-                                TextView txt1 = new TextView(this)
-                                {
-                                    Text = "Machine Server"     //Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT13").FirstOrDefault()[Temp.Newlg].ToString()
-                                };
-                                EditText ed1 = new EditText(this)
-                                {
-                                    Text = Temp.chuoi
-                                };
-                                TextView txt2 = new TextView(this)
-                                {
-                                    Text = "Scan & Pack Server"     //Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT14").FirstOrDefault()[Temp.Newlg].ToString()
-                                };
-                                EditText ed2 = new EditText(this)
-                                {
-                                    Text = Temp.com
-                                };
-
-                                l1.AddView(txt1); l1.AddView(ed1); l1.AddView(txt2); l1.AddView(ed2);
-
-                                b.SetPositiveButton("SAVE", (s, a) =>       //Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT15").FirstOrDefault()[Temp.Newlg].ToString()
-                                {
-                                    Temp.chuoi = ed1.Text; Temp.com = ed2.Text; kn = new Connect(Temp.chuoi);
-
-                                    ISharedPreferences edpre = GetSharedPreferences("MachineDowntime", FileCreationMode.Private);
-                                    ISharedPreferencesEditor editor = edpre.Edit();
-                                    editor.PutString("server1", Temp.chuoi);
-                                    editor.PutString("server2", Temp.com);
-                                    editor.Commit();
-                                });
-                                b.SetNegativeButton("EXIT", (s, a) =>       //Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT16").FirstOrDefault()[Temp.Newlg].ToString()
-                                {
-
-                                });
-
-                                b.SetCancelable(false);
-                                b.SetView(l1);
-
-                                b.Create().Show();
-                            }
-                            catch (Exception ex)
-                            {
-                                Toast.MakeText(this, ex.ToString(), ToastLength.Long).Show();
-                            }
-                        }
-                        else Toast.MakeText(this, Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT19").FirstOrDefault()[Temp.Newlg].ToString(), ToastLength.Long).Show();
-                    });
-
-                    l.Create().Show();
-                }
-                catch (Exception ex)
-                {
-                    Toast.MakeText(this, ex.ToString(), ToastLength.Long).Show();
-                }
-            };
-            txtserver.LongClick += async delegate
-            {
-                try
+                    catch { }
+                };
+                btexit.Click += delegate { System.Diagnostics.Process.GetCurrentProcess().Kill(); };
+                btexit.LongClick += delegate
                 {
                     StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
                     StrictMode.SetVmPolicy(builder.Build());
 
-                    await Task.Run(() => { SetPermision(); });
-
-                    string message1 = Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT09").FirstOrDefault()[Temp.Newlg].ToString();
-                    string message2 = Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT10").FirstOrDefault()[Temp.Newlg].ToString();
-                    string button1 = Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT11").FirstOrDefault()[Temp.Newlg].ToString();
-                    string button2 = Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT12").FirstOrDefault()[Temp.Newlg].ToString();
-
-                    Temp.OnUpdate(true, new Android.App.AlertDialog.Builder(this), "Machine Downtime", message1, message2, button1, button2, this);
-                }
-                catch { }
-            };
-            layout.LongClick += async delegate
-            {
-                try
-                {
-                    Toast.MakeText(this, "Start", ToastLength.Long).Show();
                     string file = Android.OS.Environment.ExternalStorageDirectory + "/download/" + Temp.AppName;
+                    Java.IO.File apkFile = new Java.IO.File(file);
+                    Android.Net.Uri uri = Android.Net.Uri.FromFile(apkFile);//Android.Net.Uri.FromFile(apkFile);
 
-                    //var packageInstaller = PackageManager.PackageInstaller;
-                    //var sessionParams = new PackageInstaller.SessionParams(PackageInstallMode.FullInstall);
-                    //int sessionId = packageInstaller.CreateSession(sessionParams);
-                    //var session = packageInstaller.OpenSession(sessionId);
 
-                    //var input = new System.IO.FileStream(file, FileMode.Open, FileAccess.Read);
-                    //var output = session.OpenWrite("package", 0, -1);
+                    //Intent intent = new Intent(Intent.ActionPackageAdded);
+                    ////intent.SetAction(Intent.ActionInstallPackage);
+                    //intent.SetDataAndType(uri, "application/vnd.android.package-archive");
+                    //StartActivity(intent);
 
-                    //input.CopyTo(output);
 
-                    //output.Close();
-                    //input.Close();
-                    //input.Dispose();
 
-                    //Intent intent = new Intent(this, Class);
-                    //intent.SetAction("SESSION_API_PACKAGE_INSTALLED");
-                    //intent.SetFlags(ActivityFlags.ClearTop | ActivityFlags.NewTask);
-                    //PendingIntent pendingIntent = PendingIntent.GetActivity(this, sessionId, intent, PendingIntentFlags.UpdateCurrent);
-                    //IntentSender statusReceiver = pendingIntent.IntentSender;
-                    //session.Commit(statusReceiver);
+                    //Intent webIntent = new Intent(Intent.ActionInstallPackage);//Intent.ACTION_VIEWApplication.Context, Class);//this, Class);//
+                    //webIntent.SetDataAndType(uri, "application/vnd.android.package-archive");
+                    ////webIntent.SetAction("com.example.android.apis.content.SESSION_API_PACKAGE_INSTALLED");
+                    //webIntent.SetFlags(ActivityFlags.ClearTop | ActivityFlags.NewTask | ActivityFlags.GrantPersistableUriPermission);
+                    //webIntent.PutExtra(Intent.ExtraNotUnknownSource, true);
+                    //Application.Context.StartActivity(webIntent);
 
-                    //GC.Collect();
-                    //GC.WaitForPendingFinalizers();
-                    //GC.Collect();
+                    PackageManager.CanRequestPackageInstalls();
+                    var packageInstaller = PackageManager.PackageInstaller;
+                    var sessionParams = new PackageInstaller.SessionParams(PackageInstallMode.InheritExisting);
+                    int sessionId = packageInstaller.CreateSession(sessionParams);
+                    var session = packageInstaller.OpenSession(sessionId);
 
-                    await Launcher.OpenAsync(new OpenFileRequest
-                    {
+                    AddApkToInstallSession(uri, session);
 
-                        File = new ReadOnlyFile(file)
+                    // Create an install status receiver.
+                    Intent intent = new Intent(this, Class);
+                    intent.SetAction("com.example.android.apis.content.SESSION_API_PACKAGE_INSTALLED");
+                    PendingIntent pendingIntent = PendingIntent.GetActivity(this, 3439, intent, PendingIntentFlags.UpdateCurrent);
+                    IntentSender statusReceiver = pendingIntent.IntentSender;
 
-                    });
+                    // Commit the session (this will start the installation workflow).
+                    session.Commit(statusReceiver);
+                    //session.Close();
 
-                    Toast.MakeText(this, "Finish", ToastLength.Long).Show();
-                }
-                catch (Exception ex)
+                    //Finish();
+                    Toast.MakeText(this, "Updated !!!", ToastLength.Long).Show();
+                };
+                btlogin.Click += delegate
                 {
-                    Toast.MakeText(this, ex.ToString(), ToastLength.Long).Show();
-                }
-            };
+                    try
+                    {
+                        if (edten.Text == "")
+                        {
+                            Toast.MakeText(this, Temp.TT("DT37"), ToastLength.Long).Show();
+                            edten.RequestFocus();
+                        }
+                        else if (edline.Text == "")
+                        {
+                            Toast.MakeText(this, Temp.TT("DT38"), ToastLength.Long).Show();
+                            edten.RequestFocus();
+                        }
+                        else
+                        {
+                            if (Temp.Login.Rows.Count > 0) Temp.Login.Rows.Clear();
 
-            CheckUpdate();
-            //CheckVersion();
-            //WebUpdateApk();
+                            Temp.Login = cn.Doc("exec GetDataFromQuery 30,'" + edfac.Text + "','" + edline.Text + "','" + edten.Text + "','" + edmk.Text + "','cho'").Tables[0];
 
-            txtversion.Text = Temp.version;
+                            if (Temp.Login.Rows.Count == 0)
+                            {
+                                Toast.MakeText(this, Temp.TT("DT39"), ToastLength.Long).Show();
+                                edmk.Text = "";
+                                edten.RequestFocus();
+                            }
+                            else
+                            {
+                                Toast.MakeText(this, Temp.TT("DT40"), ToastLength.Long).Show();
 
-            SetLanguage();
+                                DataRow r = Temp.Login.Rows[0];
 
-            //System.Timers.Timer timer = new System.Timers.Timer();
-            //timer.Interval = 5000;
-            //timer.Elapsed += delegate
-            //{
-            //    RunOnUiThread(() =>
-            //    {
-            //        ShowNotification(DateTime.Now.ToString("G"));
-            //    });
-            //};
-            //timer.Start();
+                                ISharedPreferences edpre = GetSharedPreferences("MachineDowntime", FileCreationMode.Private);
+                                ISharedPreferencesEditor editor = edpre.Edit();
+                                editor.PutString("user", r["ID"].ToString());
+                                editor.PutString("fac", edfac.Text);
+                                editor.PutString("line", edline.Text);
+                                editor.PutInt("lg", Temp.Newlg);
+                                editor.Commit();
+
+                                Temp.user = r["ID"].ToString();
+                                Temp.dept = r["Section"].ToString();
+                                Temp.facline = edline.Text;
+                                Temp.fac = edfac.Text;
+                                edmk.Text = "";
+
+                                Android.App.AlertDialog.Builder b = new AlertDialog.Builder(this);
+                                string[] it = { "MACHINE LOCATION", "MACHINE DOWNTIME", "LOADING DATA", /*"ACC/INPUT DOWNTIME",*/"TPM CHECKLIST", "HR CHECKLIST" };
+                                b.SetSingleChoiceItems(it, -1, (s, a) =>
+                                {
+                                    Dialog d = s as Dialog;
+
+                                    if (a.Which == 0)
+                                    {
+                                        if (Temp.Location.Rows.Count > 0) Temp.Location.Rows.Clear();
+                                        Temp.Location = kn.Doc("select * from location").Tables[0];
+
+                                        Intent location = new Intent(this, typeof(LocationActivity));
+                                        StartActivity(location);
+                                    }
+                                    else if (a.Which == 1)
+                                    {
+                                        //DependencyService.Get<IStartService>().StartForegroundServiceCompat();
+
+                                        Intent main = new Intent(this, typeof(MainActivity));
+                                        StartActivity(main);
+                                    }
+                                    else if (a.Which == 2)
+                                    {
+                                        //DependencyService.Get<IStartService>().StartForegroundServiceCompat();
+
+                                        Intent scan = new Intent(this, typeof(ScanLoadActivity));
+                                        StartActivity(scan);
+                                    }
+                                    //else if (a.Which == 3)
+                                    //{
+                                    //    //DependencyService.Get<IStartService>().StartForegroundServiceCompat();
+
+                                    //    Intent scan = new Intent(this, typeof(InputDowntimeActivity));
+                                    //    StartActivity(scan);
+                                    //}
+                                    else if (a.Which == 3)
+                                    {
+                                        //DependencyService.Get<IStartService>().StartForegroundServiceCompat();
+
+                                        Intent scan = new Intent(this, typeof(ChecklistActivity));
+                                        StartActivity(scan);
+                                    }
+                                    else if (a.Which == 4)
+                                    {
+                                        //DependencyService.Get<IStartService>().StartForegroundServiceCompat();
+
+                                        Intent scan = new Intent(this, typeof(AssetChecklistActivity));
+                                        StartActivity(scan);
+                                    }
+
+                                    d.Dismiss();
+                                });
+
+                                b.Create().Show();
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Toast.MakeText(this, Temp.TT("DT41") + ex.ToString(), ToastLength.Long).Show();
+                        edmk.Text = "";
+                    }
+                };
+                btlogin.LongClick += delegate { Toast.MakeText(this, "Density: " + Temp.metric.Density + "|DensityDPI: " + Temp.metric.Density + "|Height DPI: " + Temp.metric.HeightPixels + "|Width DPI: " + Temp.metric.WidthPixels + "|Y DPI: " + Temp.metric.Ydpi + "|X DPI: " + Temp.metric.Xdpi + "|Scale: " + Temp.metric.ScaledDensity, ToastLength.Long).Show(); };
+                chlg.Click += Chlg_Click;
+                txtserver.Click += delegate
+                {
+                    try
+                    {
+                        Android.App.AlertDialog.Builder l = new AlertDialog.Builder(this);
+
+                        EditText ed = new EditText(this)
+                        {
+                            Hint = "INPUT PASSWORD",//Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT17").FirstOrDefault()[Temp.Newlg].ToString(),
+                            LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent),
+                            InputType = Android.Text.InputTypes.TextVariationPassword,
+                            TransformationMethod = new PasswordTransformationMethod()
+                        };
+
+                        l.SetView(ed);
+                        l.SetPositiveButton("NEXT", (ss, aa) =>  //Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT18").FirstOrDefault()[Temp.Newlg].ToString()
+                        {
+                            if (ed.Text == "pro123")
+                            {
+                                try
+                                {
+                                    Android.App.AlertDialog.Builder b = new AlertDialog.Builder(this);
+
+                                    LinearLayout l1 = new LinearLayout(this)
+                                    {
+                                        Orientation = Orientation.Vertical
+                                    };
+                                    TextView txt1 = new TextView(this)
+                                    {
+                                        Text = "Machine Server"     //Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT13").FirstOrDefault()[Temp.Newlg].ToString()
+                                    };
+                                    EditText ed1 = new EditText(this)
+                                    {
+                                        Text = Temp.chuoi
+                                    };
+                                    TextView txt2 = new TextView(this)
+                                    {
+                                        Text = "Scan & Pack Server"     //Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT14").FirstOrDefault()[Temp.Newlg].ToString()
+                                    };
+                                    EditText ed2 = new EditText(this)
+                                    {
+                                        Text = Temp.com
+                                    };
+
+                                    l1.AddView(txt1); l1.AddView(ed1); l1.AddView(txt2); l1.AddView(ed2);
+
+                                    b.SetPositiveButton("SAVE", (s, a) =>       //Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT15").FirstOrDefault()[Temp.Newlg].ToString()
+                                    {
+                                        Temp.chuoi = ed1.Text; Temp.com = ed2.Text; kn = new Connect(Temp.chuoi);
+
+                                        ISharedPreferences edpre = GetSharedPreferences("MachineDowntime", FileCreationMode.Private);
+                                        ISharedPreferencesEditor editor = edpre.Edit();
+                                        editor.PutString("server1", Temp.chuoi);
+                                        editor.PutString("server2", Temp.com);
+                                        editor.Commit();
+                                    });
+                                    b.SetNegativeButton("EXIT", (s, a) =>       //Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT16").FirstOrDefault()[Temp.Newlg].ToString()
+                                    {
+
+                                    });
+
+                                    b.SetCancelable(false);
+                                    b.SetView(l1);
+
+                                    b.Create().Show();
+                                }
+                                catch (Exception ex)
+                                {
+                                    Toast.MakeText(this, ex.ToString(), ToastLength.Long).Show();
+                                }
+                            }
+                            else Toast.MakeText(this, Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT19").FirstOrDefault()[Temp.Newlg].ToString(), ToastLength.Long).Show();
+                        });
+
+                        l.Create().Show();
+                    }
+                    catch (Exception ex)
+                    {
+                        Toast.MakeText(this, ex.ToString(), ToastLength.Long).Show();
+                    }
+                };
+                txtserver.LongClick += async delegate
+                {
+                    try
+                    {
+                        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+                        StrictMode.SetVmPolicy(builder.Build());
+
+                        await Task.Run(() => { SetPermision(); });
+
+                        string message1 = Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT09").FirstOrDefault()[Temp.Newlg].ToString();
+                        string message2 = Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT10").FirstOrDefault()[Temp.Newlg].ToString();
+                        string button1 = Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT11").FirstOrDefault()[Temp.Newlg].ToString();
+                        string button2 = Temp.NgonNgu.Select().Where(x => x[0].ToString() == "DT12").FirstOrDefault()[Temp.Newlg].ToString();
+
+                        Temp.OnUpdate(true, new Android.App.AlertDialog.Builder(this), "Machine Downtime", message1, message2, button1, button2, this);
+                    }
+                    catch { }
+                };
+                layout.LongClick += async delegate
+                {
+                    try
+                    {
+                        Toast.MakeText(this, "Start", ToastLength.Long).Show();
+                        string file = Android.OS.Environment.ExternalStorageDirectory + "/download/" + Temp.AppName;
+
+                        await Launcher.OpenAsync(new OpenFileRequest
+                        {
+
+                            File = new ReadOnlyFile(file)
+
+                        });
+
+                        Toast.MakeText(this, "Finish", ToastLength.Long).Show();
+                    }
+                    catch (Exception ex)
+                    {
+                        Toast.MakeText(this, ex.ToString(), ToastLength.Long).Show();
+                    }
+                };
+
+                if (update) CheckUpdate();
+
+                txtversion.Text = Temp.version;
+
+                SetLanguage();
+            }
         }
         protected override void OnDestroy()
         {

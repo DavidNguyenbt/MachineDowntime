@@ -25,6 +25,7 @@ namespace MachineDowntime
         DataTable dtcode = new DataTable();
         Connect kn = new Connect(Temp.chuoi);
         string ComCode = "", mctype = "", dfcode = "";
+        double dt = 0;
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
@@ -133,7 +134,9 @@ namespace MachineDowntime
 
                 TimeSpan ts = DateTime.Now - Temp.OccurTime;
 
-                edest.Text = ((int)ts.TotalMinutes - giocom - ngaynghi * 24 * 60 - khac).ToString();
+                dt = ts.TotalMinutes - giocom - ngaynghi * 24 * 60 - khac;
+
+                edest.Text = Math.Round(dt, 0).ToString();
             }
             catch { }
         }
@@ -255,6 +258,11 @@ namespace MachineDowntime
                 else if (edhanhdong.Text == "")
                 {
                     Toast.MakeText(this, Temp.TT("DT76"), ToastLength.Long).Show();
+                    edhanhdong.RequestFocus();
+                }
+                else if (dt <= 0)
+                {
+                    Toast.MakeText(this, "The DT <= 0, pls check again !!!", ToastLength.Long).Show();
                     edhanhdong.RequestFocus();
                 }
                 else

@@ -87,10 +87,10 @@ namespace MachineDowntime
                 if (rs.Length > 0) facline = rs[0]["facline2"].ToString(); else facline = Temp.facline;
                 edarea.Text = facline;
 
-                LoadList("exec GetData 10,'" + facline + "','',''");
+                LoadList("exec GetData 10,N'" + facline + "','',''");
 
                 btchange.Click += delegate { SelectDept(1); rdg.Visibility = ViewStates.Gone; };
-                btchange.LongClick += delegate { LoadList("exec GetData 10,'" + facline + "','',''"); rdg.Visibility = ViewStates.Gone; };
+                btchange.LongClick += delegate { LoadList("exec GetData 10,N'" + facline + "','',''"); rdg.Visibility = ViewStates.Gone; };
                 btchangepass.Click += delegate { DoiMatKhau(); rdg.Visibility = ViewStates.Gone; };
                 btscan.Click += delegate { Scan(); };
                 btscan.LongClick += delegate
@@ -101,7 +101,7 @@ namespace MachineDowntime
 
                     b.SetPositiveButton("OK", (s, a) =>
                     {
-                        if (ed.Text != "") ShowData(ed.Text.Substring(0,8));
+                        if (ed.Text != "") ShowData(ed.Text.Substring(0, 8));
                     });
 
                     b.SetView(ed);
@@ -134,7 +134,7 @@ namespace MachineDowntime
                 {
                     Android.App.AlertDialog.Builder b = new AlertDialog.Builder(this);
 
-                    DataTable qty = kn.Doc("exec GetData 11,'" + facline + "','',''").Tables[0];
+                    DataTable qty = kn.Doc("exec GetData 11,N'" + facline + "','',''").Tables[0];
 
                     ListView lst = new ListView(this);
                     lst.Adapter = new A1ATeam.ListViewAdapterWithNoLayout(qty, new List<int> { }, true) { TextSize = 10/*LayoutRequest.TextSize(15)*/ };
@@ -310,7 +310,7 @@ namespace MachineDowntime
                 Vibrator vibrator = (Vibrator)GetSystemService(VibratorService);
                 vibrator.Vibrate(100);
 
-                ShowData(result.Text.Substring(0,8));
+                ShowData(result.Text.Substring(0, 8));
             }
         }
         private void SelectDept(int i)
@@ -353,7 +353,7 @@ namespace MachineDowntime
                         facline = f + "/" + d + "/" + s;
                         edarea.Text = facline;
 
-                        LoadList("exec GetData 10,'" + facline + "','',''");
+                        LoadList("exec GetData 10,N'" + facline + "','',''");
                         break;
                 }
 
@@ -436,15 +436,18 @@ namespace MachineDowntime
                             if (location.Substring(0, 4) == facline.Substring(0, 4)) bt1.Enabled = true;
                             else if (spmk.Rows.Count > 0 && level != "0") bt1.Enabled = true;
                         }
-                        else bt1.Enabled = true;
+                        else if (location.Split('/')[1] != "CMD Area") bt1.Enabled = true;
                     }
-                    else bt1.Enabled = true;
+                    else
+                    {
+                        if (level != "0") bt1.Enabled = true;
+                    }
                 }
 
                 bt3.Click += delegate { dg.Dismiss(); };
                 bt1.Click += delegate
                 {
-                    string qr = "update Overview set CurrentLocation = '" + facline + "',Remark = N'" + user + "' where McSerialNumber = '" + mc + "' \n";
+                    string qr = "update Overview set CurrentLocation = '" + facline + "',UpdatedTime = getdate(),Remark = N'" + user + "' where McSerialNumber = '" + mc + "' \n";
 
                     if (spmk.Rows.Count > 0) qr += " insert into LocaHistory values (getdate(),'" + mc + "','MC SPMK','" + facline + "',N'" + user + "') \n" +
                                                     " update MachineSPMK set NewLocation = '" + facline + "',ReceivedBy = N'" + user + "',ReceivedDate = getdate() where McSerialNumber = '" + mc + "'";

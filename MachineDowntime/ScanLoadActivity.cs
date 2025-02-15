@@ -4,12 +4,14 @@ using Android.Content.PM;
 using Android.Graphics;
 using Android.OS;
 using Android.Views;
+using Android.Webkit;
 using Android.Widget;
 using CSDL;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using Xamarin.Essentials;
 using ZXing.Mobile;
 
 namespace MachineDowntime
@@ -24,7 +26,7 @@ namespace MachineDowntime
         Connect kn = new Connect(Temp.com);
         MobileBarcodeScanner scanner;
         DataSet ds = new DataSet();
-        string ou = "TR";
+        string ou = "TR", url = "";
         int load = 0;
         protected override void OnCreate(Bundle savedInstanceState)
         {
@@ -73,7 +75,7 @@ namespace MachineDowntime
                     break;
             }
 
-            btscanvao.Click += delegate { RefreshData(); };
+            btscanvao.Click += delegate { CheckPO(); };
             btscanvao.LongClick += delegate
             {
                 //Scan();
@@ -252,7 +254,147 @@ namespace MachineDowntime
                   catch { }
               };
         }
+        private void CheckPO()
+        {
+            DataTable dt = new DataTable();
+            dt = kn.Doc("exec GetLoadData 78,'" + Temp.facline + "',''").Tables[0];
 
+            if (dt.Rows.Count > 0)
+            {
+                Android.App.AlertDialog.Builder b = new AlertDialog.Builder(this);
+
+                HorizontalScrollView sh = new HorizontalScrollView(this);
+                LinearLayout ln = new LinearLayout(this) { Orientation = Orientation.Vertical }; sh.AddView(ln);
+                LinearLayout head = new LinearLayout(this) { Orientation = Orientation.Horizontal }; ln.AddView(head);
+                TextView txt = new TextView(this) { Text = "PO : " }; head.AddView(txt);
+                EditText ed = new EditText(this) { LayoutParameters = new ViewGroup.LayoutParams(LayoutRequest.Widht(300), ViewGroup.LayoutParams.WrapContent) }; head.AddView(ed);
+                Button bt = new Button(this) { Text = "SEARCH" }; head.AddView(bt);
+                Button btall = new Button(this) { Text = "SEARCH ALL LINE" }; head.AddView(btall);
+                ListView lsv = new ListView(this); ln.AddView(lsv);
+
+                A1ATeam.ListViewAdapterWithNoLayout adapter = new A1ATeam.ListViewAdapterWithNoLayout(dt, new List<int> { LayoutRequest.Widht(200), LayoutRequest.Widht(200), LayoutRequest.Widht(200), LayoutRequest.Widht(100), LayoutRequest.Widht(200) }, true)
+                {
+                    TextSize = LayoutRequest.Widht(10),
+                    SingleClicked = true,
+                    ClickedItemColor = Color.LimeGreen,
+                };
+
+                lsv.Adapter = adapter;
+
+                b.SetPositiveButton("SELECT", (s, a) =>
+                {
+                    string po = adapter.GetFirstValue();
+                    //Toast.MakeText(this, url + "2/" + Temp.facline + "/" + po, ToastLength.Long).Show();
+                    CheckPOStatus(po);
+                });
+                b.SetNegativeButton("EXIT", (s, a) => { });
+
+                b.SetView(sh);
+                b.SetCancelable(false);
+
+                b.Create().Show();
+
+                bt.Click += delegate
+                {
+                    if (ed.Text != "")
+                    {
+                        DataView dv = dt.DefaultView;
+                        dv.RowFilter = "PO_NO like '%" + ed.Text + "%'";
+
+                        DataTable dt2 = new DataTable();
+                        dt2 = dv.ToTable();
+
+                        adapter = new A1ATeam.ListViewAdapterWithNoLayout(dt2, new List<int> { LayoutRequest.Widht(200), LayoutRequest.Widht(200), LayoutRequest.Widht(200), LayoutRequest.Widht(100), LayoutRequest.Widht(200) }, true)
+                        {
+                            TextSize = LayoutRequest.Widht(10),
+                            SingleClicked = true,
+                            ClickedItemColor = Color.LimeGreen,
+                        };
+
+                        lsv.Adapter = adapter;
+
+                        Toast.MakeText(this, dt2.Rows.Count.ToString(), ToastLength.Long).Show();
+                    }
+                };
+                btall.Click += delegate
+                {
+                    if (ed.Text != "")
+                    {
+                        dt.Clear();
+
+                        dt = kn.Doc("exec GetLoadData 81,'" + ed.Text.ToUpper() + "',''").Tables[0];
+                    }
+                };
+            }
+            else
+            {
+                Toast.MakeText(this, "No data", ToastLength.Long).Show();
+            }
+        }
+        private void CheckPOStatus(string po)
+        {
+            try
+            {
+                DataSet ds = new DataSet();
+                ds = kn.Doc("exec GetLoadData 79,'" + Temp.facline + "','" + po + "'");
+
+                if (ds.Tables[0].Rows.Count > 0)
+                    Toast.MakeText(this, Temp.TT("DT121"), ToastLength.Long).Show();
+                else if (ds.Tables[1].Rows.Count > 0)
+                {
+                    kn.Ghi("exec GetLoadData 80,'" + Temp.facline + "','" + po + "'");
+
+                    if (kn.ErrorMessage == "") Toast.MakeText(this, Temp.TT("DT122"), ToastLength.Long).Show();
+                    else Toast.MakeText(this, "Insert PO error !!! " + kn.ErrorMessage, ToastLength.Long).Show();
+                }
+                else
+                {
+                    if (ds.Tables[2].Rows.Count == 0)
+                    {
+                        kn.Ghi("exec GetLoadData 80,'" + Temp.facline + "','" + po + "'");
+
+                        if (kn.ErrorMessage == "") Toast.MakeText(this, Temp.TT("DT122"), ToastLength.Long).Show();
+                        else Toast.MakeText(this, "Insert PO error !!! " + kn.ErrorMessage, ToastLength.Long).Show();
+                    }
+                    else
+                    {
+                        DataRow dr = ds.Tables[2].Rows[0];
+                        Android.App.AlertDialog.Builder b = new AlertDialog.Builder(this);
+                        string msg = string.Format(Temp.TT("DT123"), dr[0].ToString(), dr[1].ToString(), po, dr[2].ToString());
+                        b.SetMessage(msg);
+
+                        b.SetPositiveButton("YES", (s, e) =>
+                        {
+                            if (ds.Tables[1].Rows.Count == 0)
+                            {
+                                Toast.MakeText(this, "Sending mail", ToastLength.Long).Show();
+
+                                WebView wb = new WebView(this);
+                                //string url = "http://192.168.1.108:8084/EndlineOuputUnlockMultiPO/public/api/UpdatePoEndLine/1/A1A" + strSelectedFac + "/" + strSelectedLine;
+                                string str = url + "2/" + Temp.facline + "/" + po;
+                                wb.LoadUrl(str);
+                                wb.Settings.JavaScriptEnabled = true;
+                                //wb.Visibility = ViewStates.Gone;
+
+                                //Toast.MakeText(this, CSDL.Language("M00082"), ToastLength.Long).Show();
+                                //Toast.MakeText(this, url, ToastLength.Long).Show();
+                                Clipboard.SetTextAsync(url);
+
+                                AlertDialog.Builder bb = new AlertDialog.Builder(this);//,Resource.Style.ShapeAppearanceOverlay_MaterialComponents_MaterialCalendar_Window_Fullscreen);
+                                bb.SetView(wb);
+                                bb.SetPositiveButton("EXIT", (k, l) => { });
+                                bb.SetCancelable(false);
+                                bb.Create().Show();
+                            }
+                        });
+                        b.SetNegativeButton("NO", (s, e) => { });
+
+                        b.Create().Show();
+                    }
+                }
+            }
+            catch { }
+        }
         private void PO(int i)
         {
             try
@@ -338,7 +480,7 @@ namespace MachineDowntime
                 {
                     mr.Width = ViewGroup.LayoutParams.WrapContent;
                     mr.SetMargins(LayoutRequest.Widht(5), LayoutRequest.Height(10), 0, 0);
-                    Button btspmk = new Button(this) { Text = "SPMK", LayoutParameters = mr }; head.AddView(btspmk);
+                    Button btspmk = new Button(this) { Text = "SPMK STATUS", LayoutParameters = mr }; head.AddView(btspmk);
 
                     b.SetPositiveButton(Temp.TT("DT93"), (s, a) =>
                     {
@@ -484,11 +626,6 @@ namespace MachineDowntime
             catch { }
         }
 
-        private void Btspmk_Click(object sender, EventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
         private void SPMK()
         {
             try
@@ -610,8 +747,12 @@ namespace MachineDowntime
                 lst.Adapter = new A1ATeam.ListViewAdapterWithNoLayout(ds.Tables[2], new List<int> { LayoutRequest.Widht(200), LayoutRequest.Widht(100), LayoutRequest.Widht(100), LayoutRequest.Widht(200), LayoutRequest.Widht(200) }, true, true, true)
                 { TextSize = LayoutRequest.Widht(10) };
 
-                if (load == 0) { if (ds.Tables[0].Rows.Count > 0) ShowData(); }
-                else SPMK();
+                //if (load == 0) { if (ds.Tables[0].Rows.Count > 0) ShowData(); }
+                //else SPMK();
+
+                SPMK();
+
+                url = ds.Tables[4].Rows[0][0].ToString();
             }
             catch { }
         }

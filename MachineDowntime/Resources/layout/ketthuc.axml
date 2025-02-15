@@ -27,7 +27,7 @@
         <EditText
             android:text="0"
             android:textColor="#FFA500"
-            android:layout_width="100dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toRightOf="@id/txtest"
             android:layout_below="@id/textView0"
@@ -63,9 +63,9 @@
             android:id="@+id/textView2" />
         <EditText
             android:text="0"
-            android:layout_width="200dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/textView1"
+            android:layout_toRightOf="@id/textView2"
             android:layout_below="@id/edgiocom"
             android:layout_marginLeft="20dp"
             android:inputType="numberDecimal"
@@ -81,9 +81,9 @@
             android:id="@+id/textView3" />
         <EditText
             android:text="0"
-            android:layout_width="200dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/textView1"
+            android:layout_toRightOf="@id/textView3"
             android:layout_below="@id/edngaynghi"
             android:layout_marginLeft="20dp"
             android:inputType="numberDecimal"
@@ -98,9 +98,9 @@
             android:layout_below="@id/edkhac"
             android:id="@+id/textView4" />
         <EditText
-            android:layout_width="200dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/textView1"
+            android:layout_toRightOf="@id/textView4"
             android:layout_below="@id/edkhac"
             android:layout_marginLeft="20dp"
             android:textAlignment="center"
@@ -114,9 +114,9 @@
             android:layout_below="@id/edcategory"
             android:id="@+id/textView7" />
         <EditText
-            android:layout_width="200dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/textView1"
+            android:layout_toRightOf="@id/textView7"
             android:layout_below="@id/edcategory"
             android:layout_marginLeft="20dp"
             android:textAlignment="center"
@@ -130,9 +130,9 @@
             android:layout_below="@id/edcode"
             android:id="@+id/txtmctype" />
         <EditText
-            android:layout_width="200dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/textView1"
+            android:layout_toRightOf="@id/txtmctype"
             android:layout_below="@id/edcode"
             android:layout_marginLeft="20dp"
             android:textAlignment="center"
@@ -146,9 +146,9 @@
             android:layout_below="@id/edmctype"
             android:id="@+id/textView5" />
         <EditText
-            android:layout_width="200dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/textView1"
+            android:layout_toRightOf="@id/textView5"
             android:layout_below="@id/edmctype"
             android:layout_marginLeft="20dp"
             android:textAlignment="center"
@@ -162,9 +162,9 @@
             android:layout_below="@id/edmotra"
             android:id="@+id/textView6" />
         <EditText
-            android:layout_width="200dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/textView1"
+            android:layout_toRightOf="@id/textView6"
             android:layout_below="@id/edmotra"
             android:layout_marginLeft="20dp"
             android:textAlignment="center"

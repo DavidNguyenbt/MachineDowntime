@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Text;
+using System.Threading.Tasks;
 using Android;
 using Android.App;
 using Android.Content;
@@ -27,12 +29,16 @@ namespace MachineDowntime
 {
     class Temp
     {
-        public static string chuoi = "Data Source=192.168.1.245;Initial Catalog=Maintenance;Integrated Security=False;User ID=prog4;Password=DeS;Connect Timeout=30;Encrypt=False;";
-        public static string com = "Data Source=192.168.1.245;Initial Catalog=DtradeProduction;Integrated Security=False;User ID=prog4;Password=DeS;Connect Timeout=30;Encrypt=False;";
-        //public static string chuoi = "Data Source=192.168.54.8;Initial Catalog=Maintenance;Integrated Security=False;User ID=sa;Password=Admin@168*;Connect Timeout=30;Encrypt=False;";
-        //public static string com = "Data Source=192.168.54.8;Initial Catalog=DtradeProduction;Integrated Security=False;User ID=sa;Password=Admin@168*;Connect Timeout=30;Encrypt=False;";
+        public static string chuoi = "Data Source=192.168.1.245;Initial Catalog=Maintenance;Integrated Security=False;User ID=user_prog4;Password=Xk#SN$jBCLs9;Connect Timeout=30;Encrypt=False;",ping = "192.168.1.245";
+        public static string com = "Data Source=192.168.1.245;Initial Catalog=DtradeProduction;Integrated Security=False;User ID=user_prog4;Password=Xk#SN$jBCLs9;Connect Timeout=30;Encrypt=False;";
+        public static string TAC_chuoi = "Data Source=192.168.54.8;Initial Catalog=Maintenance;Integrated Security=False;User ID=sa;Password=Admin@168*;Connect Timeout=30;Encrypt=False;";//, ping = "192.168.54.8";
+        public static string TAC_com = "Data Source=192.168.54.8;Initial Catalog=DtradeProduction;Integrated Security=False;User ID=sa;Password=Admin@168*;Connect Timeout=30;Encrypt=False;";
+        public static string TRX_chuoi = "Data Source=192.168.50.253;Initial Catalog=Maintenance;Integrated Security=False;User ID=sa;Password=Sql4116!;Connect Timeout=30;Encrypt=False;";//, ping = "192.168.50.253";
+        public static string TRX_com = "Data Source=192.168.50.253;Initial Catalog=DtradeProduction;Integrated Security=False;User ID=sa;Password=Sql4116!;Connect Timeout=30;Encrypt=False;";
         //public static string chuoi = "Data Source=108.181.157.253,18697;Initial Catalog=Maintenance;Integrated Security=False;User ID=David;Password=Vancho1988;Connect Timeout=30;Encrypt=False;";
-        public static string user = "", facline = "", mcid = "", msg = "Service is not run", service = "", version = "V4.6", dept = "", fac = "";
+        public static string out_chuoi = "Data Source=171.249.163.174,14333;Initial Catalog=Maintenance;Integrated Security=False;User ID=user_prog4;Password=Xk#SN$jBCLs9;Connect Timeout=30;Encrypt=False;";
+        public static string out_com = "Data Source=171.249.163.174,14333;Initial Catalog=DtradeProduction;Integrated Security=False;User ID=user_prog4;Password=Xk#SN$jBCLs9;Connect Timeout=30;Encrypt=False;";
+        public static string user = "", facline = "", mcid = "", msg = "Service is not run", service = "", version = "V5.5", dept = "", fac = "", url = "";
         public static string Link = "", AppName = "";
         public static int i = 0, Newlg = 0, Oldlg = 0;
         public static DataTable NgonNgu = new DataTable();
@@ -84,34 +90,6 @@ namespace MachineDowntime
                     childView.LayoutParameters = rlLayoutTv;
                     childView.LayoutParameters.Width = (int)(persent * rlLayoutTv.Width);
                     childView.LayoutParameters.Height = (int)(persent * rlLayoutTv.Height);
-
-                    //Type tp = childView.GetType();
-
-                    //if (tp.Equals(typeof(EditText)))
-                    //{
-                    //    EditText mojt = childView as EditText;
-                    //    mojt.TextSize = (float)(mojt.TextSize * persent);
-                    //}
-                    //else if (tp.Equals(typeof(TextView)))
-                    //{
-                    //    TextView mojt = childView as TextView;
-                    //    mojt.TextSize = (float)(mojt.TextSize * persent);
-                    //}
-                    //else if (tp.Equals(typeof(CheckBox)))
-                    //{
-                    //    CheckBox mojt = childView as CheckBox;
-                    //    mojt.TextSize = (float)(mojt.TextSize * persent);
-                    //}
-                    //else if (tp.Equals(typeof(RadioButton)))
-                    //{
-                    //    RadioButton mojt = childView as RadioButton;
-                    //    mojt.TextSize = (float)(mojt.TextSize * persent);
-                    //}
-                    //else if (tp.Equals(typeof(Button)))
-                    //{
-                    //    Button mojt = childView as Button;
-                    //    mojt.TextSize = (float)(mojt.TextSize * persent);
-                    //}
                 }
             }
             catch
@@ -186,6 +164,24 @@ namespace MachineDowntime
         {
             var sn = Snackbar.Make(view, msg, time);
             sn.Show();
+        }
+    }
+    public class NetworkHelper
+    {
+        public static async Task<bool> CanPing(string ipAddress)
+        {
+            try
+            {
+                using (Ping ping = new Ping())
+                {
+                    PingReply reply = await ping.SendPingAsync(ipAddress, 2000); // Timeout 2s
+                    return reply.Status == IPStatus.Success;
+                }
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
     class LayoutRequest
